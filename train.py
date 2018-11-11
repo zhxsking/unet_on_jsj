@@ -24,8 +24,8 @@ class Option():
         self.in_dim = 3 # 图片按rgb输入还是按灰度输入，可选1,3
         self.scale = 0.5 # 图片缩放
         self.workers = 2 # 多进程读取data
-        self.dir_img = r"D:\pic\jiansanjiang\data\img"
-        self.dir_mask = r"D:\pic\jiansanjiang\data\mask"
+        self.dir_img = r"E:\pic\jiansanjiang\data\img"
+        self.dir_mask = r"E:\pic\jiansanjiang\data\mask"
         self.save_path = r"checkpoint"
         self.cuda = False
         if torch.cuda.is_available():

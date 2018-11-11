@@ -54,8 +54,8 @@ if __name__ == '__main__':
 
 #    torch.manual_seed(1)
     
-    dir_img = r"D:\pic\jiansanjiang\data\img"
-    dir_mask = r"D:\pic\jiansanjiang\data\mask"
+    dir_img = r"E:\pic\jiansanjiang\data\img"
+    dir_mask = r"E:\pic\jiansanjiang\data\mask"
     dataset = JsjDataset(dir_img, dir_mask)
     dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=True, num_workers=2)
     
@@ -78,3 +78,14 @@ if __name__ == '__main__':
     plt.subplot(224)
     plt.imshow(lab1[0][0], cmap='gray')
     
+    for cnt, (img, mask) in enumerate(dataloader, 1):
+        img_show = img.detach().numpy()[0][0]
+        mask_show = mask.detach().numpy()[0][0]
+        
+        plt.figure()
+        plt.subplot(121)
+        plt.imshow(img_show, cmap='gray')
+        plt.subplot(122)
+        plt.imshow(mask_show, cmap='gray')
+        plt.show()
+        break
