@@ -26,9 +26,9 @@ class Option():
         if torch.cuda.is_available():
             self.cuda = True
             torch.backends.cudnn.benchmark = True
-        self.net_path = r"checkpoint\unet-epoch26.pkl"
-        self.img_path = r"D:\pic\carvana\just_for_test\train\0cdf5b5d0ce1_02.jpg"
-        self.use_dialog = True
+        self.net_path = r"checkpoint\unet-epoch20.pkl"
+        self.img_path = r"E:\pic\jiansanjiang\data\img\00b9447f-314c-4ea8-8bf5-293e2f9b5356.jpg"
+        self.use_dialog = False
 
 
 if __name__ == '__main__':
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     # 选择一副图片
     if opt.use_dialog:
         root = tk.Tk()
-        img_path = filedialog.askopenfilename(initialdir=opt.img_path.split('train')[0])
+        img_path = filedialog.askopenfilename(initialdir=opt.img_path.split('img')[0])
         root.withdraw()
         if not(img_path): sys.exit(0)
     else:
@@ -63,6 +63,7 @@ if __name__ == '__main__':
     else:
         state = torch.load(opt.net_path, map_location='cpu')
     unet.load_state_dict(state['net'])
+    loss_list = state['loss_list']
     print('load model done, calculate...')
     unet.eval()
     # 预测
@@ -89,6 +90,9 @@ if __name__ == '__main__':
         output_rgb = output_rgb.astype(np.uint8)
 
         plt.figure()
+        plt.plot(loss_list)
+
+        plt.figure()
         plt.subplot(131)
         plt.imshow(img_ori)
         plt.subplot(132)
@@ -96,6 +100,8 @@ if __name__ == '__main__':
         plt.subplot(133)
         plt.imshow(output_rgb)
         plt.show()
+        
+
 
             
             

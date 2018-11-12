@@ -84,7 +84,7 @@ if __name__ == '__main__':
                 plt.subplot(122)
                 plt.imshow(out_prob_show, cmap='gray')
                 plt.show()
-                torchvision.utils.save_image(out_prob, join(opt.save_path, r'output\epoch{}-iter{}.jpg'.format(epoch+1, cnt)))
+                torchvision.utils.save_image(out_prob, join(opt.save_path, r'output\epoch-{}-iter-{}.jpg'.format(epoch+1, cnt)))
                 
                 loss = loss_func(out, mask)
                 print('epoch {}, iter {}, loss {}'.format(epoch+1, cnt, loss))
@@ -107,7 +107,7 @@ if __name__ == '__main__':
                         'optimizer': optimizer.state_dict(),
                         'net': unet.state_dict(),
                     }
-                torch.save(state, join(opt.save_path, 'unet-epoch{}.pkl'.format(epoch+1)))
+                torch.save(state, join(opt.save_path, 'unet-epoch-{}.pkl'.format(epoch+1)))
     except KeyboardInterrupt:
         print('Interrupt!')
         plt.figure()
@@ -122,7 +122,7 @@ if __name__ == '__main__':
                 'optimizer': optimizer.state_dict(),
                 'net': unet.state_dict(),
             }
-        torch.save(state, join(opt.save_path, 'unet-epoch{}-iter{}.pkl'.format(epoch+1,cnt)))
+        torch.save(state, join(opt.save_path, 'unet-epoch-{}-iter-{}.pkl'.format(epoch+1,cnt)))
         sys.exit(0)
         
 
