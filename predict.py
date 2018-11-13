@@ -58,7 +58,7 @@ if __name__ == '__main__':
         if not(img_path): sys.exit(0)
     else:
         img_path = opt.img_path
-    # 读取图片并裁剪成左右两部分
+    # 读取图片并转换为numpy
     read_mode = 'L' if opt.in_dim==1 else ('RGB' if opt.in_dim==3 else 'error')
     img_ori = Image.open(img_path).convert(read_mode)
     height_ori = img_ori.height
