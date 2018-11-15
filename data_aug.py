@@ -26,8 +26,8 @@ if __name__ == '__main__':
 #    root.withdraw()
 #    if not(mask_dir): sys.exit(0)
     
-    img_dir = r"D:\pic\jiansanjiang\3\img"
-    mask_dir = r"D:\pic\jiansanjiang\3\mask"
+    img_dir = r"D:\pic\jiansanjiang\img"
+    mask_dir = r"D:\pic\jiansanjiang\mask"
     
 #    img_dir = r"D:\Project_des\python_des\unet_on_jsj\test\img"
 #    mask_dir = r"D:\Project_des\python_des\unet_on_jsj\test\mask"
