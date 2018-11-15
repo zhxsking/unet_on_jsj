@@ -15,6 +15,7 @@ from unet import UNet
 import matplotlib.pyplot as plt
 from os.path import join
 import sys
+import time
 
 class Option():
     """超参数定义类"""
@@ -63,7 +64,8 @@ if __name__ == '__main__':
     plt.show()
     try:
         for epoch in range(opt.epochs):
-            print('epoch {}/{} start...'.format(epoch+1, opt.epochs))
+            local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            print('epoch {}/{} start... {}'.format(epoch+1, opt.epochs, local_time))
             loss_temp = 0
             
             for cnt, (img, mask) in enumerate(dataloader, 1):
@@ -75,7 +77,8 @@ if __name__ == '__main__':
                 out_prob = F.sigmoid(out)
             
                 loss = loss_func(out, mask)
-                print('epoch {}, iter {}, loss {}'.format(epoch+1, cnt, loss))
+                local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                print('epoch {}/{}, iter {}/{}, loss {}, {}'.format(epoch+1, opt.epochs, cnt, len(dataloader), loss, local_time))
                 loss_temp += loss.item()
                 loss_list_big.append(loss.item())
                 
@@ -93,7 +96,8 @@ if __name__ == '__main__':
 #            plt.subplot(122)
 #            plt.plot(loss_list)
 #            plt.pause(0.01)
-            print('epoch {} done, average loss {}'.format(epoch+1, loss_temp))
+            local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            print('epoch {}/{} done, average loss {}, {}'.format(epoch+1, opt.epochs, loss_temp, local_time))
         plt.ioff()
     except KeyboardInterrupt:
         print('Interrupt!')

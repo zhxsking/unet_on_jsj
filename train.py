@@ -14,18 +14,19 @@ from unet import UNet
 import matplotlib.pyplot as plt
 from os.path import join
 import sys
+import time
 
 class Option():
     """超参数定义类"""
     def __init__(self):
         self.epochs = 50
-        self.batchsize = 2
+        self.batchsize = 1
         self.lr = 1e-3
         self.in_dim = 3 # 图片按rgb输入还是按灰度输入，可选1,3
         self.scale = 0.5 # 图片缩放
         self.workers = 2 # 多进程读取data
-        self.dir_img = r"D:\pic\jiansanjiang\data\img"
-        self.dir_mask = r"D:\pic\jiansanjiang\data\mask"
+        self.dir_img = r"E:\pic\jiansanjiang\data\img"
+        self.dir_mask = r"E:\pic\jiansanjiang\data\mask"
         self.save_path = r"checkpoint"
         self.cuda = False
         if torch.cuda.is_available():
@@ -60,7 +61,8 @@ if __name__ == '__main__':
     loss_list_big = []
     try:
         for epoch in range(opt.epochs):
-            print('epoch {}/{} start...'.format(epoch+1, opt.epochs))
+            local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            print('epoch {}/{} start... {}'.format(epoch+1, opt.epochs, local_time))
             loss_temp = 0
             
             for cnt, (img, mask) in enumerate(dataloader, 1):
@@ -87,7 +89,8 @@ if __name__ == '__main__':
                 torchvision.utils.save_image(out_prob, join(opt.save_path, r'output\epoch-{}-iter-{}.jpg'.format(epoch+1, cnt)))
                 
                 loss = loss_func(out, mask)
-                print('epoch {}/{}, iter {}/{}, loss {}'.format(epoch+1, opt.epochs, cnt, len(dataloader), loss))
+                local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                print('epoch {}/{}, iter {}/{}, loss {}, {}'.format(epoch+1, opt.epochs, cnt, len(dataloader), loss, local_time))
                 loss_temp += loss.item()
                 loss_list_big.append(loss.item())
     
@@ -97,7 +100,8 @@ if __name__ == '__main__':
             
             loss_temp /= cnt
             loss_list.append(loss_temp)
-            print('epoch {} done, average loss {}'.format(epoch+1, loss_temp))
+            local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            print('epoch {}/{} done, average loss {}, {}'.format(epoch+1, opt.epochs, loss_temp, local_time))
             
             # 保存模型
             if (epoch+1) % 1 == 0:
