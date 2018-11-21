@@ -6,7 +6,6 @@ Created on Mon Oct 29 10:03:56 2018
 """
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
 from unet import UNet
@@ -29,10 +28,17 @@ class Option():
             self.cuda = True
             torch.backends.cudnn.benchmark = True
         self.net_path = r"checkpoint\unet-epoch20.pkl"
-        self.img_path = r"E:\pic\jiansanjiang\data\img\00b9447f-314c-4ea8-8bf5-293e2f9b5356.jpg"
-        self.use_dialog = True
-        self.crop_width = 1280
-        self.crop_height = 1280
+        self.use_dialog = True # 是否弹出对话框选择图片
+        self.img_path = r"D:\pic\jiansanjiang\img\3.jpg"
+        self.mask_path = r"‪D:\pic\jiansanjiang\mask\3.jpg"
+        self.crop_width = 1280 # 图片分块的宽
+        self.crop_height = 1280 # 图片分块的高
+
+def diceLoss(input, target):
+    eps = 0.0001
+    inter = torch.dot(input.view(-1), target.view(-1))
+    union = torch.sum(input) + torch.sum(target) + eps
+    return (2 * inter.float() + eps) / union.float()
 
 
 if __name__ == '__main__':
@@ -50,14 +56,24 @@ if __name__ == '__main__':
     loss_list = state['loss_list']
     unet.eval()
     print('load model done!')
-    # 选择一副图片
+    # 选择图片
     if opt.use_dialog:
+        # 打开待预测图片对话框
         root = tk.Tk()
-        img_path = filedialog.askopenfilename(initialdir=opt.img_path.split('img')[0])
+        img_path = filedialog.askopenfilename(initialdir=opt.img_path.split('img')[0],
+                                              title='选择待预测图片')
+        if not(img_path):
+            root.withdraw()
+            sys.exit(0)
+        # 打开mask图片对话框
+        mask_path = filedialog.askdirectory(initialdir=opt.mask_path.split('img')[0],
+                                           title='选择mask图片')
         root.withdraw()
-        if not(img_path): sys.exit(0)
+        if not(mask_path): sys.exit(0)
+        
     else:
         img_path = opt.img_path
+        mask_path = opt.mask_path
     # 读取图片并转换为numpy
     read_mode = 'L' if opt.in_dim==1 else ('RGB' if opt.in_dim==3 else 'error')
     img_ori = Image.open(img_path).convert(read_mode)
@@ -114,9 +130,15 @@ if __name__ == '__main__':
                 # 将窗口的预测结果映射回大图
                 res[y_start : y_stop, x_start : x_stop] = out_np
     res_bw = (res > 0.5).astype(np.float32) # 二值化
-    res_rgb = img_ori * np.stack((res_bw, res_bw, res_bw), axis=2)
+    res_rgb = img_ori * np.stack((res_bw, res_bw, res_bw), axis=2) # 二值结果映射到原图
     res_rgb = res_rgb.astype(np.uint8)
 
+    mask_ori = Image.open(mask_path).convert(read_mode)
+    mask_np = np.array(mask_ori)
+    # 计算准确率
+    dice_loss = diceLoss(res_bw, mask_np)
+    print(dice_loss)
+    
     plt.figure()
     plt.plot(loss_list)
 

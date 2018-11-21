@@ -56,30 +56,27 @@ if __name__ == '__main__':
         unet.load_state_dict(state['net'])
         optimizer.load_state_dict(state['optimizer'])
     unet.train()
-    
+    # 开始训练
     loss_list = []
     loss_list_big = []
     try:
         for epoch in range(opt.epochs):
             local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             print('epoch {}/{} start... {}'.format(epoch+1, opt.epochs, local_time))
-            loss_temp = 0
-            
+            loss_temp = 0 # 保存临时loss信息
             for cnt, (img, mask) in enumerate(dataloader, 1):
                 if opt.cuda:
                     img = img.cuda()
                     mask = mask.cuda()
-                    
                 out = unet(img)
                 out_prob = F.sigmoid(out)
-                
+                # 将输出转换为numpy以显示
                 if opt.cuda:
                     out_show = out.detach().cpu().numpy()[0][0]
                     out_prob_show = out_prob.detach().cpu().numpy()[0][0]
                 else:
                     out_show = out.detach().numpy()[0][0]
                     out_prob_show = out_prob.detach().numpy()[0][0]
-                
                 plt.figure()
                 plt.subplot(121)
                 plt.imshow(out_show, cmap='gray')
@@ -112,14 +109,23 @@ if __name__ == '__main__':
                         'net': unet.state_dict(),
                     }
                 torch.save(state, join(opt.save_path, 'unet-epoch-{}.pkl'.format(epoch+1)))
-    except KeyboardInterrupt:
-        print('Interrupt!')
+        # 训练完显示loss曲线
         plt.figure()
         plt.subplot(121)
         plt.plot(loss_list)
         plt.subplot(122)
         plt.plot(loss_list_big)
         plt.show()
+    except KeyboardInterrupt:
+        print('Interrupt!')
+        # 中断时显示loss曲线
+        plt.figure()
+        plt.subplot(121)
+        plt.plot(loss_list)
+        plt.subplot(122)
+        plt.plot(loss_list_big)
+        plt.show()
+        # 保存中断信息
         state = {
                 'epoch': epoch+1,
                 'loss_list': loss_list,
