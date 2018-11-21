@@ -25,8 +25,10 @@ class Option():
         self.in_dim = 3 # 图片按rgb输入还是按灰度输入，可选1,3
         self.scale = 0.5 # 图片缩放
         self.workers = 2 # 多进程读取data
-        self.dir_img = r"E:\pic\jiansanjiang\data\img"
+        self.dir_img = r"E:\pic\jiansanjiang\data\img" # 训练集
         self.dir_mask = r"E:\pic\jiansanjiang\data\mask"
+        self.dir_test_img = r"E:\pic\jiansanjiang\data\test\img" # 验证集
+        self.dir_test_mask = r"E:\pic\jiansanjiang\data\test\mask"
         self.save_path = r"checkpoint"
         self.cuda = False
         if torch.cuda.is_available():
@@ -34,6 +36,27 @@ class Option():
             torch.backends.cudnn.benchmark = True
         self.pretrained = False
         self.net_path = r"checkpoint\unet-epoch26.pkl"
+
+def diceLoss(input, target):
+    """计算dice loss"""
+    eps = 1
+    inter = torch.dot(input.view(-1), target.view(-1))
+    union = torch.sum(input) + torch.sum(target) + eps
+    return (2 * inter.float() + eps) / union.float()
+
+def evalNet(net, dataloader):
+    """用验证集评判网络性能"""
+    net.eval()
+    dice_loss = 0
+    with torch.no_grad():
+        for cnt, (img, mask) in enumerate(dataloader, 1):
+            if opt.cuda:
+                img = img.cuda()
+                mask = mask.cuda()
+            out = net(img)
+            out_prob = F.sigmoid(out)
+            dice_loss += diceLoss(out_prob, mask)
+    return dice_loss / cnt
 
 
 if __name__ == '__main__':
@@ -43,6 +66,9 @@ if __name__ == '__main__':
     
     dataset = JsjDataset(opt.dir_img, opt.dir_mask, scale=opt.scale)
     dataloader = DataLoader(dataset=dataset, batch_size=opt.batchsize, shuffle=True, num_workers=opt.workers)
+    
+    dataset_test = JsjDataset(opt.dir_test_img, opt.dir_test_mask, scale=opt.scale)
+    dataloader_test = DataLoader(dataset=dataset_test, batch_size=opt.batchsize, shuffle=True, num_workers=opt.workers)
     
     unet = UNet(in_dim=opt.in_dim)
     loss_func = nn.BCEWithLogitsLoss()
@@ -55,7 +81,6 @@ if __name__ == '__main__':
         state = torch.load(opt.net_path)
         unet.load_state_dict(state['net'])
         optimizer.load_state_dict(state['optimizer'])
-    unet.train()
     # 开始训练
     loss_list = []
     loss_list_big = []
@@ -65,6 +90,7 @@ if __name__ == '__main__':
             print('epoch {}/{} start... {}'.format(epoch+1, opt.epochs, local_time))
             loss_temp = 0 # 保存临时loss信息
             for cnt, (img, mask) in enumerate(dataloader, 1):
+                unet.train()
                 if opt.cuda:
                     img = img.cuda()
                     mask = mask.cuda()
@@ -99,7 +125,9 @@ if __name__ == '__main__':
             loss_list.append(loss_temp)
             local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             print('epoch {}/{} done, average loss {}, {}'.format(epoch+1, opt.epochs, loss_temp, local_time))
-            
+            # 验证
+            dice_loss = evalNet(unet, dataloader_test)
+            print(dice_loss)
             # 保存模型
             if (epoch+1) % 1 == 0:
                 state = {

@@ -35,10 +35,10 @@ class Option():
         self.crop_height = 1280 # 图片分块的高
 
 def diceLoss(input, target):
-    eps = 0.0001
-    inter = torch.dot(input.view(-1), target.view(-1))
-    union = torch.sum(input) + torch.sum(target) + eps
-    return (2 * inter.float() + eps) / union.float()
+    eps = 1.
+    inter = np.dot(input.ravel(), target.ravel())
+    union = np.sum(input) + np.sum(target) + eps
+    return (2 * inter.astype(np.float32) + eps) / union.astype(np.float32)
 
 
 if __name__ == '__main__':
