@@ -27,14 +27,15 @@ class Option():
         if torch.cuda.is_available():
             self.cuda = True
             torch.backends.cudnn.benchmark = True
-        self.net_path = r"checkpoint\unet-epoch20.pkl"
+        self.net_path = r"checkpoint\unet-epoch-20.pkl"
         self.use_dialog = True # 是否弹出对话框选择图片
-        self.img_path = r"D:\pic\jiansanjiang\img\3.jpg"
-        self.mask_path = r"‪D:\pic\jiansanjiang\mask\3.jpg"
+        self.img_path = r"E:\pic\jiansanjiang\img\3.jpg"
+        self.mask_path = r"E:\pic\jiansanjiang\mask\3.jpg"
         self.crop_width = 1280 # 图片分块的宽
         self.crop_height = 1280 # 图片分块的高
 
 def diceLoss(input, target):
+    """计算dice准确率"""
     eps = 1.
     inter = np.dot(input.ravel(), target.ravel())
     union = np.sum(input) + np.sum(target) + eps
@@ -66,7 +67,7 @@ if __name__ == '__main__':
             root.withdraw()
             sys.exit(0)
         # 打开mask图片对话框
-        mask_path = filedialog.askdirectory(initialdir=opt.mask_path.split('img')[0],
+        mask_path = filedialog.askopenfilename(initialdir=opt.mask_path.split('mask')[0],
                                            title='选择mask图片')
         root.withdraw()
         if not(mask_path): sys.exit(0)
@@ -133,10 +134,11 @@ if __name__ == '__main__':
     res_rgb = img_ori * np.stack((res_bw, res_bw, res_bw), axis=2) # 二值结果映射到原图
     res_rgb = res_rgb.astype(np.uint8)
 
-    mask_ori = Image.open(mask_path).convert(read_mode)
+    mask_ori = Image.open(mask_path).convert('L')
     mask_np = np.array(mask_ori)
+    mask_bw = (mask_np > 128).astype(np.float32) # 二值化
     # 计算准确率
-    dice_loss = diceLoss(res_bw, mask_np)
+    dice_loss = diceLoss(res_bw, mask_bw)
     print(dice_loss)
     
     plt.figure()

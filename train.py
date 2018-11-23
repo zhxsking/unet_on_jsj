@@ -25,10 +25,10 @@ class Option():
         self.in_dim = 3 # 图片按rgb输入还是按灰度输入，可选1,3
         self.scale = 0.5 # 图片缩放
         self.workers = 2 # 多进程读取data
-        self.dir_img = r"E:\pic\jiansanjiang\data\img" # 训练集
-        self.dir_mask = r"E:\pic\jiansanjiang\data\mask"
-        self.dir_test_img = r"E:\pic\jiansanjiang\data\test\img" # 验证集
-        self.dir_test_mask = r"E:\pic\jiansanjiang\data\test\mask"
+        self.dir_img = r"E:\pic\jiansanjiang\train\img" # 训练集
+        self.dir_mask = r"E:\pic\jiansanjiang\train\mask"
+        self.dir_test_img = r"E:\pic\jiansanjiang\test\img" # 验证集
+        self.dir_test_mask = r"E:\pic\jiansanjiang\test\mask"
         self.save_path = r"checkpoint"
         self.cuda = False
         if torch.cuda.is_available():
@@ -37,17 +37,17 @@ class Option():
         self.pretrained = False
         self.net_path = r"checkpoint\unet-epoch26.pkl"
 
-def diceLoss(input, target):
-    """计算dice loss"""
+def diceCoff(input, target):
+    """计算dice系数"""
     eps = 1
     inter = torch.dot(input.view(-1), target.view(-1))
     union = torch.sum(input) + torch.sum(target) + eps
-    return (2 * inter.float() + eps) / union.float()
+    return ((2 * inter.float() + eps) / union.float()).item()
 
 def evalNet(net, dataloader):
     """用验证集评判网络性能"""
     net.eval()
-    dice_loss = 0
+    dice_coff = 0
     with torch.no_grad():
         for cnt, (img, mask) in enumerate(dataloader, 1):
             if opt.cuda:
@@ -55,8 +55,8 @@ def evalNet(net, dataloader):
                 mask = mask.cuda()
             out = net(img)
             out_prob = F.sigmoid(out)
-            dice_loss += diceLoss(out_prob, mask)
-    return dice_loss / cnt
+            dice_coff += diceCoff(out_prob, mask)
+    return dice_coff / cnt
 
 
 if __name__ == '__main__':
@@ -84,6 +84,7 @@ if __name__ == '__main__':
     # 开始训练
     loss_list = []
     loss_list_big = []
+    dice_list = []
     try:
         for epoch in range(opt.epochs):
             local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -126,13 +127,15 @@ if __name__ == '__main__':
             local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             print('epoch {}/{} done, average loss {}, {}'.format(epoch+1, opt.epochs, loss_temp, local_time))
             # 验证
-            dice_loss = evalNet(unet, dataloader_test)
-            print(dice_loss)
+            dice_coff = evalNet(unet, dataloader_test)
+            dice_list.append(dice_coff)
+            print('epoch {}/{} done, dice coff {}'.format(epoch+1, opt.epochs, dice_coff))
             # 保存模型
             if (epoch+1) % 1 == 0:
                 state = {
                         'epoch': epoch+1,
                         'loss_list': loss_list,
+                        'dice_list': dice_list,
                         'optimizer': optimizer.state_dict(),
                         'net': unet.state_dict(),
                     }
@@ -157,6 +160,7 @@ if __name__ == '__main__':
         state = {
                 'epoch': epoch+1,
                 'loss_list': loss_list,
+                'dice_list': dice_list,
                 'optimizer': optimizer.state_dict(),
                 'net': unet.state_dict(),
             }
