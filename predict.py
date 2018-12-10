@@ -28,24 +28,25 @@ class Option():
             self.cuda = True
             torch.backends.cudnn.benchmark = True
         self.net_path = r"checkpoint\unet-epoch-20.pkl"
-        self.use_dialog = True # 是否弹出对话框选择图片
-        self.img_path = r"E:\pic\jiansanjiang\img\3.jpg"
-        self.mask_path = r"E:\pic\jiansanjiang\mask\3.jpg"
+        self.use_dialog = False # 是否弹出对话框选择图片
+        self.img_path = r"E:\pic\jiansanjiang\img\10.jpg"
+        self.mask_path = r"E:\pic\jiansanjiang\mask\10.jpg"
         self.crop_width = 1280 # 图片分块的宽
         self.crop_height = 1280 # 图片分块的高
 
-def diceLoss(input, target):
-    """计算dice准确率"""
+def diceCoff(input, target):
+    """计算dice系数"""
     eps = 1.
     inter = np.dot(input.ravel(), target.ravel())
     union = np.sum(input) + np.sum(target) + eps
     return (2 * inter.astype(np.float32) + eps) / union.astype(np.float32)
 
-
-if __name__ == '__main__':
-    __spec__ = None
-    
-    opt = Option()
+def predict(opt, plot_loss=False):
+    """对输入大图进行预测得到结果
+    opt: 相关参数
+    plot_loss: 标志是否绘制loss曲线
+    返回dice系数、分割结果二值图、分割结果彩色对应图
+    """
     # 加载模型
     unet = UNet(in_dim=opt.in_dim)
     if opt.cuda:
@@ -70,8 +71,7 @@ if __name__ == '__main__':
         mask_path = filedialog.askopenfilename(initialdir=opt.mask_path.split('mask')[0],
                                            title='选择mask图片')
         root.withdraw()
-        if not(mask_path): sys.exit(0)
-        
+        if not(mask_path): sys.exit(0) 
     else:
         img_path = opt.img_path
         mask_path = opt.mask_path
@@ -138,22 +138,60 @@ if __name__ == '__main__':
     mask_np = np.array(mask_ori)
     mask_bw = (mask_np > 128).astype(np.float32) # 二值化
     # 计算准确率
-    dice_loss = diceLoss(res_bw, mask_bw)
-    print(dice_loss)
+    dice_coff = diceCoff(res_bw, mask_bw)
+    # 绘制loss曲线
+    if plot_loss:
+        plt.figure()
+        plt.plot(loss_list)
+
+    return dice_coff, res_bw, res_rgb
+
+if __name__ == '__main__':
+    __spec__ = None
     
+    opt = Option()
+    
+    dice_coff, res_bw, res_rgb = predict(opt)
+    print('{} accuracy: {}'.format(opt.img_path, dice_coff))
     plt.figure()
-    plt.plot(loss_list)
-
-    plt.figure()
-    plt.subplot(131)
-    plt.imshow(img_ori)
-    plt.subplot(132)
-    plt.imshow(res_bw, cmap='gray')
-    plt.subplot(133)
+#        plt.subplot(131)
+#        plt.imshow(img_ori)
+#        plt.subplot(132)
+#        plt.imshow(res_bw, cmap='gray')
+#        plt.subplot(133)
     plt.imshow(res_rgb)
+    plt.title('accuracy: {}'.format(dice_coff))
+    plt.xticks([])
+    plt.yticks([])
     plt.show()
-                
-
-
+        
+#    dice_coff_list = []
+#    dice_coff_tmp = 0
+#    for i in range(4,51):
+#        for j in range(3,11):
+#            opt.net_path = r"checkpoint\unet-epoch-"+str(i)+".pkl"
+#            opt.img_path = "E:\\pic\\jiansanjiang\\img\\"+str(j)+".jpg"
+#            opt.mask_path = "E:\\pic\\jiansanjiang\\mask\\"+str(j)+".jpg"
+#            
+#            dice_coff, res_bw, res_rgb = predict(opt)
+#            print('{} accuracy: {}'.format(opt.img_path, dice_coff))
+#            plt.figure()
+#        #        plt.subplot(131)
+#        #        plt.imshow(img_ori)
+#        #        plt.subplot(132)
+#        #        plt.imshow(res_bw, cmap='gray')
+#        #        plt.subplot(133)
+#            plt.imshow(res_rgb)
+#            plt.title('accuracy: {}'.format(dice_coff))
+#            plt.xticks([])
+#            plt.yticks([])
+#            plt.show()
+#            dice_coff_tmp += dice_coff
+#        dice_coff_list.append(dice_coff_tmp / 8)
+#        dice_coff_tmp = 0
+#        
+#    plt.figure()
+#    plt.plot(dice_coff_list)
+        
             
             
