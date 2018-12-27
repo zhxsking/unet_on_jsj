@@ -12,25 +12,19 @@ import sys
 import tkinter as tk
 from tkinter import filedialog
 
-IMG_NUM = 500 # 输出图片数量
+IMG_NUM = 5000 # 输出图片数量
 
 if __name__ == '__main__':
     # 打开image文件夹对话框
-#    root = tk.Tk()
-#    img_dir = filedialog.askdirectory(title='选择图片所在文件夹')
-#    if not(img_dir): 
-#        root.withdraw()
-#        sys.exit(0)
-#    # 打开mask文件夹对话框
-#    mask_dir = filedialog.askdirectory(title='选择mask所在文件夹')
-#    root.withdraw()
-#    if not(mask_dir): sys.exit(0)
-    
-    img_dir = r"D:\pic\jiansanjiang\img"
-    mask_dir = r"D:\pic\jiansanjiang\mask"
-    
-#    img_dir = r"D:\Project_des\python_des\unet_on_jsj\test\img"
-#    mask_dir = r"D:\Project_des\python_des\unet_on_jsj\test\mask"
+    root = tk.Tk()
+    img_dir = filedialog.askdirectory(title='选择图片所在文件夹')
+    if not(img_dir): 
+        root.withdraw()
+        sys.exit(0)
+    # 打开mask文件夹对话框
+    mask_dir = filedialog.askdirectory(title='选择mask所在文件夹')
+    root.withdraw()
+    if not(mask_dir): sys.exit(0)
     
     p = Augmentor.Pipeline(img_dir)
     p.ground_truth(mask_dir)
