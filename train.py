@@ -21,14 +21,14 @@ class Option():
     def __init__(self):
         self.epochs = 50
         self.batchsize = 1
-        self.lr = 1e-3
+        self.lr = 1e-5
         self.in_dim = 3 # 图片按rgb输入还是按灰度输入，可选1,3
         self.scale = 0.5 # 图片缩放
         self.workers = 2 # 多进程读取data
-        self.dir_img = r"E:\pic\jiansanjiang\train\img" # 训练集
-        self.dir_mask = r"E:\pic\jiansanjiang\train\mask"
-        self.dir_test_img = r"E:\pic\jiansanjiang\test\img" # 验证集
-        self.dir_test_mask = r"E:\pic\jiansanjiang\test\mask"
+        self.dir_img = r"E:\pic\jiansanjiang\contrast\RGB\data\train\img" # 训练集
+        self.dir_mask = r"E:\pic\jiansanjiang\contrast\RGB\data\train\mask"
+        self.dir_test_img = r"E:\pic\jiansanjiang\contrast\RGB\data\test\img" # 验证集
+        self.dir_test_mask = r"E:\pic\jiansanjiang\contrast\RGB\data\test\mask"
         self.save_path = r"checkpoint"
         self.cuda = False
         if torch.cuda.is_available():

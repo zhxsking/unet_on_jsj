@@ -3,6 +3,7 @@
 Created on Mon Oct 29 10:03:56 2018
 @author: zhxsking
 可视化loss变化，用于调参
+单独窗口显示 %matplotlib qt5
 """
 
 import torch
@@ -22,12 +23,12 @@ class Option():
     def __init__(self):
         self.epochs = 50
         self.batchsize = 1
-        self.lr = 1e-3
+        self.lr = 1e-5
         self.in_dim = 3 # 图片按rgb输入还是按灰度输入，可选1,3
         self.scale = 0.5 # 图片缩放
         self.workers = 2 # 多进程读取data
-        self.dir_img = r"E:\pic\jiansanjiang\data\img"
-        self.dir_mask = r"E:\pic\jiansanjiang\data\mask"
+        self.dir_img = r"E:\pic\jiansanjiang\contrast\RGB\data\train\img"
+        self.dir_mask = r"E:\pic\jiansanjiang\contrast\RGB\data\train\mask"
         self.save_path = r"checkpoint"
         self.cuda = False
         if torch.cuda.is_available():
@@ -72,30 +73,23 @@ if __name__ == '__main__':
                 if opt.cuda:
                     img = img.cuda()
                     mask = mask.cuda()
-                    
                 out = unet(img)
                 out_prob = F.sigmoid(out)
-            
                 loss = loss_func(out, mask)
                 local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
                 print('epoch {}/{}, iter {}/{}, loss {}, {}'.format(epoch+1, opt.epochs, cnt, len(dataloader), loss, local_time))
                 loss_temp += loss.item()
                 loss_list_big.append(loss.item())
-                
-#                plt.cla()
-#                plt.subplot(121)
+                # 绘制loss曲线
                 plt.plot(loss_list_big)
+                plt.title('loss {}'.format(loss))
                 plt.pause(0.01)
-    
+                # 反向传播
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-            
             loss_temp /= cnt
             loss_list.append(loss_temp)
-#            plt.subplot(122)
-#            plt.plot(loss_list)
-#            plt.pause(0.01)
             local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             print('epoch {}/{} done, average loss {}, {}'.format(epoch+1, opt.epochs, loss_temp, local_time))
         plt.ioff()

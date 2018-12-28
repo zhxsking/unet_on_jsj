@@ -54,8 +54,8 @@ if __name__ == '__main__':
 
 #    torch.manual_seed(1)
     
-    dir_img = r"E:\pic\jiansanjiang\data\img"
-    dir_mask = r"E:\pic\jiansanjiang\data\mask"
+    dir_img = r"E:\pic\jiansanjiang\contrast\RGB\data\train\img"
+    dir_mask = r"E:\pic\jiansanjiang\contrast\RGB\data\train\mask"
     dataset = JsjDataset(dir_img, dir_mask)
     dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=True, num_workers=2)
     
