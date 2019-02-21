@@ -13,7 +13,7 @@ import random
 import tkinter as tk
 from tkinter import filedialog
 
-IMG_NUM = 100 # 输出图片数量
+IMG_NUM = 5000 # 输出图片数量
 ratio_train = 0.7 # 训练集比例
 ratio_validation = 0.15 # 验证集比例
 ratio_test = 0.15 # 测试集比例
