@@ -106,9 +106,9 @@ if __name__ == '__main__':
             out = unet(img)
             loss = loss_func(out, mask)
             
-            local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-            print('epoch {}/{}, iter {}/{}, loss {}, {}'.format(epoch+1,
-                  opt.epochs, cnt, len(dataloader), loss, local_time))
+#            local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+#            print('epoch {}/{}, iter {}/{}, loss {}, {}'.format(epoch+1,
+#                  opt.epochs, cnt, len(dataloader), loss, local_time))
             
             loss_temp += loss.item()
             out_prob = torch.sigmoid(out)
@@ -133,8 +133,7 @@ if __name__ == '__main__':
             best_dice = dice_val
             best_model = copy.deepcopy(unet.state_dict())
             
-        print('''epoch {}/{} done, train loss {:.4f}, train dice {:.4f}, 
-              val loss {:.4f}, val dice {:.4f}'''
+        print('''epoch {}/{} done, train loss {:.4f}, train dice {:.4f}, val loss {:.4f}, val dice {:.4f}'''
           .format(epoch+1, opt.epochs, loss_temp, dice_temp, loss_val, dice_val))
         
         # 保存中途模型

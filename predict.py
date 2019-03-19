@@ -8,31 +8,35 @@ Created on Mon Oct 29 10:03:56 2018
 import torch
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-from unet import UNet
 import matplotlib.pyplot as plt
 import sys
 import tkinter as tk
 from tkinter import filedialog
+from tqdm import tqdm
 from PIL import Image
 import numpy as np
 from math import ceil
 
+from unet import UNet
+from jsj_dataset import JsjDataset
+from option import Option
 
-class Option():
-    """超参数定义类"""
-    def __init__(self):
-        self.in_dim = 3 # 图片按rgb输入还是按灰度输入，可选1,3
-        self.scale = 0.5 # 图片缩放
-        self.cuda = False
-        if torch.cuda.is_available():
-            self.cuda = True
-            torch.backends.cudnn.benchmark = True
-        self.net_path = r"checkpoint\unet-epoch-20.pkl"
-        self.use_dialog = False # 是否弹出对话框选择图片
-        self.img_path = r"E:\pic\jiansanjiang\img\10.jpg"
-        self.mask_path = r"E:\pic\jiansanjiang\mask\10.jpg"
-        self.crop_width = 1280 # 图片分块的宽
-        self.crop_height = 1280 # 图片分块的高
+
+#class Option():
+#    """超参数定义类"""
+#    def __init__(self):
+#        self.in_dim = 3 # 图片按rgb输入还是按灰度输入，可选1,3
+#        self.scale = 0.5 # 图片缩放
+#        self.cuda = False
+#        if torch.cuda.is_available():
+#            self.cuda = True
+#            torch.backends.cudnn.benchmark = True
+#        self.net_path = r"checkpoint\unet-epoch-20.pkl"
+#        self.use_dialog = False # 是否弹出对话框选择图片
+#        self.img_path = r"E:\pic\jiansanjiang\img\10.jpg"
+#        self.mask_path = r"E:\pic\jiansanjiang\mask\10.jpg"
+#        self.crop_width = 1280 # 图片分块的宽
+#        self.crop_height = 1280 # 图片分块的高
 
 def diceCoff(input, target):
     """计算dice系数"""
@@ -73,7 +77,7 @@ def predict(opt):
         mask_path = opt.mask_path
     
     # 读取图片并转换为numpy
-    read_mode = 'L' if opt.in_dim==1 else ('RGB' if opt.in_dim==3 else 'error')
+    read_mode = 'L' if opt.depth==1 else ('RGB' if opt.depth==3 else 'error')
     img_ori = Image.open(img_path).convert(read_mode)
     height_ori = img_ori.height
     width_ori = img_ori.width
@@ -83,10 +87,15 @@ def predict(opt):
     res = np.zeros((height_ori, width_ori), np.float32)
     
     # 滑窗截图并预测
-    dx, dy = opt.crop_width, opt.crop_height # 滑窗slide
+    dx, dy = opt.block_size, opt.block_size # 滑窗slide
     x_start, y_start, x_stop, y_stop = 0, 0, 0, 0 # 初始化索引起点与终点
-    for x_ in range(ceil(width_ori / dx)):
-        for y_ in range(ceil(height_ori / dy)):
+    block_num_h = int(ceil(height_ori / dy))
+    block_num_w = int(ceil(width_ori / dx))
+    
+    pbar = tqdm(total=block_num_h*block_num_w, desc='Predicting')
+    for x_ in range(block_num_w):
+        for y_ in range(block_num_h):
+            pbar.update(1)
             if (x_+1)*dx > width_ori and (y_+1)*dy <= height_ori: # 索引仅超出右边界则往左边多取一些
                 y_start = y_ * dy
                 y_stop = (y_ + 1) * dy
@@ -132,7 +141,8 @@ def predict(opt):
                 
                 # 将窗口的预测结果映射回大图
                 res[y_start : y_stop, x_start : x_stop] = out_np
-    res_bw = (res > 0.5).astype(np.float32) # 二值化
+    pbar.close()
+    res_bw = (res > opt.threshold).astype(np.float32) # 二值化
     res_rgb = img_ori * np.stack((res_bw, res_bw, res_bw), axis=2) # 二值结果映射到原图
     res_rgb = res_rgb.astype(np.uint8)
 
@@ -153,11 +163,11 @@ if __name__ == '__main__':
     dice_coff, res_bw, res_rgb = predict(opt)
     print('{} accuracy: {}'.format(opt.img_path, dice_coff))
     plt.figure()
-#        plt.subplot(131)
-#        plt.imshow(img_ori)
-#        plt.subplot(132)
-#        plt.imshow(res_bw, cmap='gray')
-#        plt.subplot(133)
+    plt.subplot(131)
+#    plt.imshow(img_ori)
+    plt.subplot(132)
+    plt.imshow(res_bw, cmap='gray')
+    plt.subplot(133)
     plt.imshow(res_rgb)
     plt.title('accuracy: {}'.format(dice_coff))
     plt.xticks([])

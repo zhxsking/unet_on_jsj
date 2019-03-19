@@ -103,7 +103,7 @@ if __name__ == '__main__':
     
     # 建立训练集、验证集、测试集文件夹
     save_dir_train = os.path.join(out_dir, 'train')
-    save_dir_validation = os.path.join(out_dir, 'validation')
+    save_dir_validation = os.path.join(out_dir, 'val')
     save_dir_test = os.path.join(out_dir, 'test')
     if not os.path.exists(save_dir_train): os.mkdir(save_dir_train)
     if not os.path.exists(save_dir_validation): os.mkdir(save_dir_validation)
