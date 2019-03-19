@@ -17,6 +17,8 @@ IMG_NUM = 5000 # 输出图片数量
 ratio_train = 0.7 # 训练集比例
 ratio_validation = 0.15 # 验证集比例
 ratio_test = 0.15 # 测试集比例
+crop_h = 320
+crop_w = 320
 
 def list_split(full_list, ratio_1=0.7, ratio_2=0.15, ratio_3=0.15, shuffle=True):
     """按比例切分list"""
@@ -40,21 +42,26 @@ def list_split(full_list, ratio_1=0.7, ratio_2=0.15, ratio_3=0.15, shuffle=True)
     return sublist_1, sublist_2, sublist_3
 
 if __name__ == '__main__':
-    # 打开image文件夹对话框
-    root = tk.Tk()
-    img_dir = filedialog.askdirectory(title='选择图片所在文件夹')
-    if not(img_dir): 
-        root.withdraw()
-        sys.exit(0)
-    # 打开mask文件夹对话框
-    mask_dir = filedialog.askdirectory(title='选择mask所在文件夹')
-    root.withdraw()
-    if not(mask_dir): sys.exit(0)
+#    # 打开image文件夹对话框
+#    root = tk.Tk()
+#    img_dir = filedialog.askdirectory(title='选择图片所在文件夹')
+#    if not(img_dir): 
+#        root.withdraw()
+#        sys.exit(0)
+#    
+#    # 打开mask文件夹对话框
+#    mask_dir = filedialog.askdirectory(title='选择mask所在文件夹')
+#    root.withdraw()
+#    if not(mask_dir): sys.exit(0)
+    
+    img_dir = r'E:\pic\jiansanjiang\contrast\RGB\img'
+    mask_dir = r'E:\pic\jiansanjiang\contrast\RGB\mask'
     
     p = Augmentor.Pipeline(img_dir)
     p.ground_truth(mask_dir)
+    
     # 增强操作
-    p.crop_by_size(1, width=1280, height=1280, centre=False)
+    p.crop_by_size(1, width=crop_w, height=crop_h, centre=False)
     p.flip_left_right(0.5)
     p.flip_top_bottom(0.5)
 #    p.random_erasing(0.5, rectangle_area=0.5) # 随机遮挡
@@ -68,6 +75,7 @@ if __name__ == '__main__':
     
     # 原始输出图片保存路径
     out_dir = os.path.join(img_dir, 'output')
+    
     # 分两个文件夹重新保存image和mask
     save_dir_img = os.path.join(out_dir, 'img')
     save_dir_mask = os.path.join(out_dir, 'mask')
@@ -75,6 +83,7 @@ if __name__ == '__main__':
         os.mkdir(save_dir_img)
     if not os.path.exists(save_dir_mask):
         os.mkdir(save_dir_mask)
+    
     # 移动到新文件夹并改名
     out_names = os.listdir(out_dir)
     for out_name in out_names:
@@ -84,12 +93,14 @@ if __name__ == '__main__':
         elif 'groundtruth' in out_name:
             new_name = out_name.split('jpg_')[1]
             shutil.move(os.path.join(out_dir, out_name), os.path.join(save_dir_mask, new_name))
+    
     # 切分数据集
     out_names_full = os.listdir(save_dir_img)
     out_names_train, out_names_validation, out_names_test = list_split(out_names_full,
                                                                        ratio_1 = ratio_train,
                                                                        ratio_2 = ratio_validation,
                                                                        ratio_3 = ratio_test)
+    
     # 建立训练集、验证集、测试集文件夹
     save_dir_train = os.path.join(out_dir, 'train')
     save_dir_validation = os.path.join(out_dir, 'validation')
@@ -97,6 +108,7 @@ if __name__ == '__main__':
     if not os.path.exists(save_dir_train): os.mkdir(save_dir_train)
     if not os.path.exists(save_dir_validation): os.mkdir(save_dir_validation)
     if not os.path.exists(save_dir_test): os.mkdir(save_dir_test)
+    
     # 将图片放入训练集文件夹
     train_dir_img = os.path.join(save_dir_train, 'img')
     train_dir_mask = os.path.join(save_dir_train, 'mask')
@@ -105,6 +117,7 @@ if __name__ == '__main__':
     for out_name in out_names_train:
         shutil.move(os.path.join(save_dir_img, out_name), os.path.join(train_dir_img, out_name))
         shutil.move(os.path.join(save_dir_mask, out_name), os.path.join(train_dir_mask, out_name))
+    
     # 将图片放入验证集文件夹
     validation_dir_img = os.path.join(save_dir_validation, 'img')
     validation_dir_mask = os.path.join(save_dir_validation, 'mask')
@@ -113,6 +126,7 @@ if __name__ == '__main__':
     for out_name in out_names_validation:
         shutil.move(os.path.join(save_dir_img, out_name), os.path.join(validation_dir_img, out_name))
         shutil.move(os.path.join(save_dir_mask, out_name), os.path.join(validation_dir_mask, out_name))
+    
     # 将图片放入测试集文件夹    
     test_dir_img = os.path.join(save_dir_test, 'img')
     test_dir_mask = os.path.join(save_dir_test, 'mask')
@@ -121,6 +135,7 @@ if __name__ == '__main__':
     for out_name in out_names_test:
         shutil.move(os.path.join(save_dir_img, out_name), os.path.join(test_dir_img, out_name))
         shutil.move(os.path.join(save_dir_mask, out_name), os.path.join(test_dir_mask, out_name))
+    
     # 删除建立的两个文件夹
     os.rmdir(save_dir_img)
     os.rmdir(save_dir_mask)

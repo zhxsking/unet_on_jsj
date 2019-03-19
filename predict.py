@@ -41,23 +41,18 @@ def diceCoff(input, target):
     union = np.sum(input) + np.sum(target) + eps
     return (2 * inter.astype(np.float32) + eps) / union.astype(np.float32)
 
-def predict(opt, plot_loss=False):
+def predict(opt):
     """对输入大图进行预测得到结果
-    opt: 相关参数
-    plot_loss: 标志是否绘制loss曲线
+    opt: 相关配置
     返回dice系数、分割结果二值图、分割结果彩色对应图
     """
     # 加载模型
-    unet = UNet(in_dim=opt.in_dim)
-    if opt.cuda:
-        unet = unet.cuda()
-        state = torch.load(opt.net_path)
-    else:
-        state = torch.load(opt.net_path, map_location='cpu')
-    unet.load_state_dict(state['net'])
-    loss_list = state['loss_list']
+    unet = UNet(in_depth=opt.depth).to(opt.device)
+    state = torch.load(r"checkpoint\best-unet.pkl", map_location=opt.device)
+    unet.load_state_dict(state['unet'])
     unet.eval()
     print('load model done!')
+    
     # 选择图片
     if opt.use_dialog:
         # 打开待预测图片对话框
@@ -67,6 +62,7 @@ def predict(opt, plot_loss=False):
         if not(img_path):
             root.withdraw()
             sys.exit(0)
+        
         # 打开mask图片对话框
         mask_path = filedialog.askopenfilename(initialdir=opt.mask_path.split('mask')[0],
                                            title='选择mask图片')
@@ -75,14 +71,17 @@ def predict(opt, plot_loss=False):
     else:
         img_path = opt.img_path
         mask_path = opt.mask_path
+    
     # 读取图片并转换为numpy
     read_mode = 'L' if opt.in_dim==1 else ('RGB' if opt.in_dim==3 else 'error')
     img_ori = Image.open(img_path).convert(read_mode)
     height_ori = img_ori.height
     width_ori = img_ori.width
     img_np = np.array(img_ori)
+    
     # 初始化预测图片
     res = np.zeros((height_ori, width_ori), np.float32)
+    
     # 滑窗截图并预测
     dx, dy = opt.crop_width, opt.crop_height # 滑窗slide
     x_start, y_start, x_stop, y_stop = 0, 0, 0, 0 # 初始化索引起点与终点
@@ -109,25 +108,28 @@ def predict(opt, plot_loss=False):
                 y_stop = (y_ + 1) * dy
                 x_start = x_ * dx
                 x_stop = (x_ + 1) * dx
+            
             # 取出一个窗口
             img_slice = img_np[y_start : y_stop, x_start : x_stop]
+            
             # 输入unet的预处理
             img = Image.fromarray(img_slice)
-            img = img.resize(tuple(map(lambda x: int(x * opt.scale), img.size)))
-            img = transforms.functional.to_tensor(img).unsqueeze(0)
-            if opt.cuda: img = img.cuda()
+            img = transforms.functional.to_tensor(img).unsqueeze(0).to(opt.device)
+            
             # 预测
             with torch.no_grad():
                 out = unet(img)
-                out_prob = F.sigmoid(out).squeeze(0)
-                # 转换为PIL并上采样
+                out_prob = torch.sigmoid(out).squeeze(0)
+                
+                # 转换为PIL
                 post_proc = transforms.Compose([
                         transforms.ToPILImage(),
-                        transforms.Resize(opt.crop_height),
                         transforms.ToTensor(),
                         ])
+    
                 # 转换回numpy类型
                 out_np = post_proc(out_prob.cpu()).squeeze(0).numpy()
+                
                 # 将窗口的预测结果映射回大图
                 res[y_start : y_stop, x_start : x_stop] = out_np
     res_bw = (res > 0.5).astype(np.float32) # 二值化
@@ -137,12 +139,9 @@ def predict(opt, plot_loss=False):
     mask_ori = Image.open(mask_path).convert('L')
     mask_np = np.array(mask_ori)
     mask_bw = (mask_np > 128).astype(np.float32) # 二值化
+    
     # 计算准确率
     dice_coff = diceCoff(res_bw, mask_bw)
-    # 绘制loss曲线
-    if plot_loss:
-        plt.figure()
-        plt.plot(loss_list)
 
     return dice_coff, res_bw, res_rgb
 

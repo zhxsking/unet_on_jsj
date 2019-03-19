@@ -12,12 +12,11 @@ from os.path import join
 from PIL import Image
 
 class JsjDataset(Dataset):
-    def __init__(self, dir_img, dir_mask, img_dim=3, scale=0.5):
+    def __init__(self, dir_img, dir_mask, img_dim=3):
         super().__init__()
         self.dir_img = dir_img
         self.dir_mask = dir_mask
         self.img_dim = img_dim
-        self.scale = scale
         
     def __getitem__(self, index):
         img_names = listdir(self.dir_img)
@@ -27,18 +26,22 @@ class JsjDataset(Dataset):
         img = Image.open(join(self.dir_img, img_names[index])).convert(read_mode)
         mask = Image.open(join(self.dir_mask, mask_names[index])).convert('L')
         
-#        img = img.resize(tuple(map(lambda x: int(x * self.scale), img.size)))
-#        mask = mask.resize(tuple(map(lambda x: int(x * self.scale), img.size)))
+        if 'RGB' in self.dir_img:
+            means = (0.57633764, 0.47007486, 0.3075999)
+            stds =(0.2519291, 0.21737799, 0.17447254)
+        elif 'RGN' in self.dir_img:
+            means = (0.19842228, 0.15358844, 0.2672494)
+            stds =(0.102274425, 0.07998896, 0.124288246)
         
-        new_size = tuple(map(lambda x: int(x * self.scale), (img.height, img.width)))
-        
-        process = transforms.Compose([
-                transforms.Resize(new_size),
+        img_process = transforms.Compose([
                 transforms.ToTensor(),
+                transforms.Normalize(means, stds),
                 ])
+    
+        mak_process = transforms.ToTensor()
         
-        img = process(img)
-        mask = process(mask)
+        img = img_process(img)
+        mask = mak_process(mask)
         
         return img, mask
     

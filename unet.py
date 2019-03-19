@@ -31,11 +31,17 @@ class Down(nn.Module):
     
 class Up(nn.Module):
     """unet的上升部分模块"""
-    def __init__(self, in_channel, out_channel):
+    def __init__(self, in_channel, out_channel, upconv=True):
         super().__init__()
-        self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        if upconv:
+            self.up = nn.ConvTranspose2d(in_channel, in_channel, kernel_size=3,
+                                         stride=2, padding=1, output_padding=1)
+        else:  
+            self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        
+            
         self.conv = nn.Sequential(
-                nn.Conv2d(in_channel, out_channel, kernel_size=3, padding=1),
+                nn.Conv2d(in_channel*2, out_channel, kernel_size=3, padding=1),
                 nn.BatchNorm2d(out_channel),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(out_channel, out_channel, kernel_size=3, padding=1),
@@ -51,23 +57,19 @@ class Up(nn.Module):
     
 
 class UNet(nn.Module):
-    """unet定义
-    
-    采用双线性上采样，实际网络与论文有所不同，
-    论文中上卷积将图的深度也减半了，但上采样不改变深度
-    """
-    
-    def __init__(self, in_dim):
+    def __init__(self, in_depth):
         super().__init__()
-        self.down1 = Down(in_dim, 64, do_pool=False)
+        self.down1 = Down(in_depth, 64, do_pool=False)
         self.down2 = Down(64, 128)
         self.down3 = Down(128, 256)
         self.down4 = Down(256, 512)
-        self.down5 = Down(512, 512)
-        self.up1 = Up(1024, 256)
-        self.up2 = Up(512, 128)
-        self.up3 = Up(256, 64)
-        self.up4 = Up(128, 64)
+        self.down5 = Down(512, 1024)
+        self.down_conv = nn.Conv2d(1024, 512, kernel_size=1)
+        
+        self.up1 = Up(512, 256)
+        self.up2 = Up(256, 128)
+        self.up3 = Up(128, 64)
+        self.up4 = Up(64, 64)
         self.out_conv = nn.Conv2d(64, 1, kernel_size=1)
         
     def forward(self, x):
@@ -76,6 +78,7 @@ class UNet(nn.Module):
         x3 = self.down3(x2)
         x4 = self.down4(x3)
         x5 = self.down5(x4)
+        x5 = self.down_conv(x5)
         x = self.up1(x4, x5)
         x = self.up2(x3, x)
         x = self.up3(x2, x)
@@ -85,7 +88,7 @@ class UNet(nn.Module):
     
 
 if __name__ == '__main__':
-    unet = UNet(in_dim=1)
+    unet = UNet(in_depth=1)
     if torch.cuda.is_available():
         unet = unet.cuda()
 #    print(unet)
