@@ -40,6 +40,8 @@ if __name__ == '__main__':
     loss_func = nn.BCEWithLogitsLoss().to(opt.device)
     optimizer = torch.optim.Adam(unet.parameters(), lr=opt.lr,
                                  weight_decay=opt.weight_decay)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
+                                                step_size=10, gamma=0.5)
     
     # 加载预训练的参数
     if opt.pretrained:
@@ -54,7 +56,7 @@ if __name__ == '__main__':
     print('start...')
     for epoch in range(opt.epochs):
         loss_temp = 0
-        
+        scheduler.step()
         for cnt, (img, mask) in enumerate(dataloader, 1):
             img = img.to(opt.device)
             mask = mask.to(opt.device)

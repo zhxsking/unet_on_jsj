@@ -12,9 +12,9 @@ class Option():
     def __init__(self):
         # 训练相关参数
         self.depth = 3 # 图片深度
-        self.epochs = 2
+        self.epochs = 20
         self.batchsize = 3
-        self.lr = 1e-4
+        self.lr = 5e-4
         self.weight_decay = 0.000
         self.workers = 0 # 多进程，可能会卡程序
         self.dir_img_train = r"E:\pic\jiansanjiang\contrast\RGB\data\train\img" # 训练集

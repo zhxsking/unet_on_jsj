@@ -77,7 +77,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(unet.parameters(), lr=opt.lr,
                                  weight_decay=opt.weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
-                                                step_size=10, gamma=0.1) # 动态改变lr
+                                                step_size=10, gamma=0.5) # 动态改变lr
     
     # 加载预训练的参数
     if opt.pretrained:
@@ -171,9 +171,11 @@ if __name__ == '__main__':
     # 训练完显示loss及dice曲线
     plt.figure()
     plt.subplot(121)
-    plt.plot(loss_list_train, loss_list_val)
+    plt.plot(loss_list_train)
+    plt.plot(loss_list_val)
     plt.subplot(122)
-    plt.plot(dice_list_train, dice_list_val)
+    plt.plot(dice_list_train)
+    plt.plot(dice_list_val)
     plt.show()
         
 

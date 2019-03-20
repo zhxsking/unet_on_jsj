@@ -7,6 +7,18 @@ Created on Fri Oct 26 17:30:06 2018
 import torch
 import torch.nn as nn
 
+
+def weight_init(m):
+    '''权值初始化'''
+    if (isinstance(m, nn.Conv2d) or 
+        isinstance(m, nn.Linear) or 
+        isinstance(m, nn.ConvTranspose2d)):
+        nn.init.xavier_normal_(m.weight)
+        nn.init.constant_(m.bias.data, 0.0)
+    elif isinstance(m, nn.BatchNorm2d):
+        m.weight.data.fill_(1)
+        m.bias.data.zero_()
+
 class Down(nn.Module):
     """unet的下降部分模块"""
     def __init__(self, in_channel, out_channel, do_pool=True):
@@ -57,7 +69,7 @@ class Up(nn.Module):
     
 
 class UNet(nn.Module):
-    def __init__(self, in_depth):
+    def __init__(self, in_depth, pretrained=False):
         super().__init__()
         self.down1 = Down(in_depth, 64, do_pool=False)
         self.down2 = Down(64, 128)
@@ -71,6 +83,9 @@ class UNet(nn.Module):
         self.up3 = Up(128, 64)
         self.up4 = Up(64, 64)
         self.out_conv = nn.Conv2d(64, 1, kernel_size=1)
+        
+        if not pretrained:
+            self.apply(weight_init)
         
     def forward(self, x):
         x1 = self.down1(x)
