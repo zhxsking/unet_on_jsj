@@ -159,7 +159,7 @@ if __name__ == '__main__':
             'optimizer': optimizer.state_dict(),
             'unet': unet.state_dict(),
             }
-    torch.save(final_unet_state, r'checkpoint/final_unet.pkl')
+    torch.save(final_unet_state, r'checkpoint/final-unet.pkl')
     
     # 统计用时并显示训练信息
     

@@ -13,6 +13,7 @@ import random
 import tkinter as tk
 from tkinter import filedialog
 
+
 IMG_NUM = 5000 # 输出图片数量
 ratio_train = 0.7 # 训练集比例
 ratio_validation = 0.15 # 验证集比例
@@ -54,8 +55,8 @@ if __name__ == '__main__':
 #    root.withdraw()
 #    if not(mask_dir): sys.exit(0)
     
-    img_dir = r'E:\pic\jiansanjiang\contrast\RGB\img'
-    mask_dir = r'E:\pic\jiansanjiang\contrast\RGB\mask'
+    img_dir = r'E:\pic\jiansanjiang\contrast\RGN\img'
+    mask_dir = r'E:\pic\jiansanjiang\contrast\RGN\mask'
     
     p = Augmentor.Pipeline(img_dir)
     p.ground_truth(mask_dir)
