@@ -13,7 +13,7 @@ class Option():
         # 训练相关参数
         self.name = 'RGB'
         self.depth = 3 # 图片深度
-        self.epochs = 20
+        self.epochs = 100
         self.batchsize = 3 # 3 12
         self.lr = 5e-4
         self.weight_decay = 0.000

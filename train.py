@@ -84,7 +84,6 @@ if __name__ == '__main__':
         state = torch.load(opt.pretrained_net_path)
         unet.load_state_dict(state['unet'])
 #        optimizer.load_state_dict(state['optimizer'])
-        
     
     # 开始训练
     since = time.time()# 记录时间
@@ -114,8 +113,6 @@ if __name__ == '__main__':
             loss_temp += loss.item()
             out_prob = torch.sigmoid(out)
             dice_temp += diceCoff(out_prob, mask)
-            
-            sys.exit(0)
 
             optimizer.zero_grad()
             loss.backward()

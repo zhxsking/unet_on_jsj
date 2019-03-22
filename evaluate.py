@@ -18,6 +18,7 @@ import shutil
 import sys
 import time
 import copy
+from tqdm import tqdm
 from boxx import show
 
 from unet import UNet
@@ -32,22 +33,6 @@ def diceCoff(input, target):
     union = torch.sum(input) + torch.sum(target) + eps
     return ((2 * inter.float() + eps) / union.float()).item()
 
-def evalNet(net, loss_func, dataloader, device):
-    """用验证集评判网络性能"""
-    net.eval()
-    dice_coff = 0
-    loss_temp = 0
-    with torch.no_grad():
-        for cnt, (img, mask) in enumerate(dataloader, 1):
-            img = img.to(device)
-            mask = mask.to(device)
-            out = net(img)
-            loss = loss_func(out, mask)
-            out_prob = torch.sigmoid(out)
-            loss_temp += loss.item()
-            dice_coff += diceCoff(out_prob, mask)
-    return loss_temp / cnt, dice_coff / cnt
-
 
 if __name__ == '__main__':
     __spec__ = None
@@ -60,24 +45,23 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     
     # 加载数据
-#    dataset_test = JsjDataset(opt.dir_img_test, opt.dir_mask_test)
-    dataset_test = JsjDataset(opt.dir_img_val, opt.dir_mask_val)
-    dataloader_test = DataLoader(dataset=dataset_test, batch_size=512,
+    dataset_test = JsjDataset(opt.dir_img_test, opt.dir_mask_test)
+    dataloader_test = DataLoader(dataset=dataset_test, batch_size=opt.batchsize,
                             shuffle=True, num_workers=opt.workers)
     
     unet = UNet(in_depth=opt.depth).to(opt.device)
-    state = torch.load(r"data\{}\final-unet.pkl".format(opt.name), map_location=opt.device)
+    state = torch.load(r"data\{}\best-unet.pkl".format(opt.name), map_location=opt.device)
     unet.load_state_dict(state['unet'])
     loss_func = nn.BCEWithLogitsLoss().to(opt.device)
     
-#    loss_val, dice_val = evalNet(unet, loss_func, dataloader_test, opt.device)
-    
-    
+    # 验证
     unet.eval()
     dice_coff = 0
     loss_temp = 0
+    pbar = tqdm(total=len(dataloader_test), desc='Evaluating')
     with torch.no_grad():
         for cnt, (img, mask) in enumerate(dataloader_test, 1):
+            pbar.update(1)
             img = img.to(opt.device)
             mask = mask.to(opt.device)
             out = unet(img)
@@ -85,8 +69,9 @@ if __name__ == '__main__':
             out_prob = torch.sigmoid(out)
             loss_temp += loss.item()
             dice_coff += diceCoff(out_prob, mask)
+    pbar.close()
     loss_temp /= cnt
     dice_coff /= cnt
     
-    print(loss_temp, dice_coff)
+    print('loss {:.4f}, dice {:.4f}'.format(loss_temp, dice_coff))
 
