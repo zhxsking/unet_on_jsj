@@ -31,7 +31,7 @@ class Option():
         # 预测相关参数
         self.block_size = 640 # 一次处理block_size*block_size个像素大小的块
         self.use_dialog = False # 是否弹出对话框选择图片
-        self.img_path = r"E:\pic\jiansanjiang\contrast\{}\img\rgb.jpg".format(self.name)
-        self.mask_path = r"E:\pic\jiansanjiang\contrast\{}\mask\rgb.jpg".format(self.name)
+        self.img_path = r"E:\pic\jiansanjiang\contrast\{}\img\{}.jpg".format(self.name, self.name)
+        self.mask_path = r"E:\pic\jiansanjiang\contrast\{}\mask\{}.jpg".format(self.name, self.name)
         self.threshold = 0.5 # 阈值,ln(0.5)=-0.69
         

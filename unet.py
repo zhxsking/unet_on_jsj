@@ -113,6 +113,6 @@ if __name__ == '__main__':
 #    print(out_x.size())
     
     from torchsummary import summary
-    summary(unet, (1,128,128))
+    summary(unet, (1,320,320))
         
         

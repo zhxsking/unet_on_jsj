@@ -10,6 +10,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import torchvision
+import torchvision.transforms as transforms
 import numpy as np
 import matplotlib.pyplot as plt
 from os.path import join
@@ -54,6 +55,13 @@ if __name__ == '__main__':
     unet.load_state_dict(state['unet'])
     loss_func = nn.BCEWithLogitsLoss().to(opt.device)
     
+    if 'RGB' in opt.name:
+        means = (0.57633764, 0.47007486, 0.3075999)
+        stds =(0.2519291, 0.21737799, 0.17447254)
+    elif 'RGN' in opt.name:
+        means = (0.19842228, 0.15358844, 0.2672494)
+        stds =(0.102274425, 0.07998896, 0.124288246)
+    
     # 验证
     unet.eval()
     dice_coff = 0
@@ -69,9 +77,26 @@ if __name__ == '__main__':
             out_prob = torch.sigmoid(out)
             loss_temp += loss.item()
             dice_coff += diceCoff(out_prob, mask)
+            
+            # 保存一部分结果
+            if not os.path.exists(r'data\{}\res'.format(opt.name)):
+                os.makedirs(r'data\{}\res'.format(opt.name))
+            if cnt in [10, 20, 30]:
+                
+                # 取3张图片
+                for j in range(3):
+                    tmp_img = img.cpu().numpy().transpose(0,2,3,1)[j,:]
+                    tmp_out = out_prob.cpu().numpy().transpose(0,2,3,1)[j,:,:,0]
+                    
+                    # 反归一化
+                    for d in range(3):
+                        tmp_img[:,:,d] = tmp_img[:,:,d] * stds[d] + means[d]
+                    plt.imsave(r'data\{}\res\{}-img.jpg'.format(opt.name, j), tmp_img)
+                    plt.imsave(r'data\{}\res\{}-out.jpg'.format(opt.name, j), tmp_out, cmap='gray')
+
     pbar.close()
     loss_temp /= cnt
     dice_coff /= cnt
     
-    print('loss {:.4f}, dice {:.4f}'.format(loss_temp, dice_coff))
+    print('{} loss {:.4f}, dice {:.4f}'.format(opt.name, loss_temp, dice_coff))
 
