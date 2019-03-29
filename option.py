@@ -11,7 +11,7 @@ class Option():
     """定义网络的参数及其他"""
     def __init__(self):
         # 训练相关参数
-        self.name = 'RGB'
+        self.name = 'RGN'
         self.depth = 3 # 图片深度
         self.epochs = 100
         self.batchsize = 12 # 3 12

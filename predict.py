@@ -20,6 +20,7 @@ from math import ceil
 from unet import UNet
 from jsj_dataset import JsjDataset
 from option import Option
+from damage_evaluate import damage_eval
 
 
 def diceCoff(input, target):
@@ -147,6 +148,8 @@ if __name__ == '__main__':
     plt.imsave(res_path, res_bw, cmap='gray')
     
     print('{} accuracy: {:.4f}'.format(opt.img_path, dice_coff))
+    
+    damage_ratio = damage_eval(opt, res)
     
     plt.figure()
     plt.subplot(131)
