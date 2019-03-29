@@ -147,11 +147,11 @@ if __name__ == '__main__':
     res_path = r'data\{}\res-{:.4f}.jpg'.format(opt.name, dice_coff)
     plt.imsave(res_path, res_bw, cmap='gray')
     
-    damage_ratio = damage_eval(opt, res)
-    
     print('{} accuracy: {:.4f}'.format(opt.img_path, dice_coff))
-    print('灾损: {:.4f}'.format(damage_ratio))
     
+    if opt.do_damage_eval:
+        damage_ratio = damage_eval(opt, res)
+        print('灾损: {:.4f}'.format(damage_ratio))
     
     plt.figure()
     plt.subplot(131)

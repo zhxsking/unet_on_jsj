@@ -33,5 +33,6 @@ class Option():
         self.use_dialog = False # 是否弹出对话框选择图片
         self.img_path = r"E:\pic\jiansanjiang\contrast\{}\img\{}.jpg".format(self.name, self.name)
         self.mask_path = r"E:\pic\jiansanjiang\contrast\{}\mask\{}.jpg".format(self.name, self.name)
-        self.threshold = 0.5 # 阈值,ln(0.5)=-0.69
+        self.threshold = 0.5 # 阈值
+        self.do_damage_eval = False
         
