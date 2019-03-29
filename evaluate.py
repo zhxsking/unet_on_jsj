@@ -91,8 +91,8 @@ if __name__ == '__main__':
                     # 反归一化
                     for d in range(3):
                         tmp_img[:,:,d] = tmp_img[:,:,d] * stds[d] + means[d]
-                    plt.imsave(r'data\{}\res\{}-img.jpg'.format(opt.name, j), tmp_img)
-                    plt.imsave(r'data\{}\res\{}-out.jpg'.format(opt.name, j), tmp_out, cmap='gray')
+                    plt.imsave(r'data\{}\res\{}-{}-img.jpg'.format(opt.name, cnt, j), tmp_img)
+                    plt.imsave(r'data\{}\res\{}-{}-out.jpg'.format(opt.name, cnt, j), tmp_out, cmap='gray')
 
     pbar.close()
     loss_temp /= cnt

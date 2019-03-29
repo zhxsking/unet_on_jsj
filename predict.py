@@ -133,7 +133,8 @@ if __name__ == '__main__':
     res_bw = (res > opt.threshold).astype(np.float32) # 二值化
     res_rgb = img_ori * np.stack((res_bw, res_bw, res_bw), axis=2) # 二值结果映射到原图
     res_rgb = res_rgb.astype(np.uint8)
-
+    
+    # 读取真值
     mask_ori = Image.open(mask_path).convert('L')
     mask_np = np.array(mask_ori)
     mask_bw = (mask_np > 128).astype(np.float32) # 二值化
@@ -141,6 +142,9 @@ if __name__ == '__main__':
     # 计算准确率
     dice_coff = diceCoff(res_bw, mask_bw)
     
+    # 保存结果
+    res_path = r'data\{}\res-{:.4f}.jpg'.format(opt.name, dice_coff)
+    plt.imsave(res_path, res_bw, cmap='gray')
     
     print('{} accuracy: {:.4f}'.format(opt.img_path, dice_coff))
     

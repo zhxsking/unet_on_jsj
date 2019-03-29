@@ -14,7 +14,7 @@ class Option():
         self.name = 'RGB'
         self.depth = 3 # 图片深度
         self.epochs = 100
-        self.batchsize = 3 # 3 12
+        self.batchsize = 12 # 3 12
         self.lr = 5e-4
         self.weight_decay = 0.000
         self.workers = 0 # 多进程，可能会卡程序
@@ -29,7 +29,7 @@ class Option():
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         
         # 预测相关参数
-        self.block_size = 640 # 一次处理block_size*block_size个像素大小的块
+        self.block_size = 1280 # 一次处理block_size*block_size个像素大小的块
         self.use_dialog = False # 是否弹出对话框选择图片
         self.img_path = r"E:\pic\jiansanjiang\contrast\{}\img\{}.jpg".format(self.name, self.name)
         self.mask_path = r"E:\pic\jiansanjiang\contrast\{}\mask\{}.jpg".format(self.name, self.name)
