@@ -59,7 +59,7 @@ def damage_eval(opt, res):
     damage_ratio = mask_res.sum() / mask.sum()
     
     # 保存结果
-    res_path = r'data\{}\res-block-{:.4f}.jpg'.format(opt.name, damage_ratio)
+    res_path = r'data\{}\damage-eval-{:.4f}.jpg'.format(opt.name, damage_ratio)
     plt.imsave(res_path, res_rgb)
     
     return damage_ratio
