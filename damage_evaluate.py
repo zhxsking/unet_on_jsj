@@ -17,15 +17,15 @@ def on_mouse(event, x, y, flags, param):
     
     if event == cv2.EVENT_LBUTTONDOWN:
         print (x,y)
-        cv2.circle(img, (x,y), 2, (1,0,0), -1)
+        cv2.circle(img, (x,y), 10, (255,255,255), 10)
         pts.append((x, y))
         if len(pts) >= 2:
-            cv2.line(img, pts[-2], pts[-1], (0,255,255), 1)
+            cv2.line(img, pts[-2], pts[-1], (0,255,255), 6)
         cv2.imshow('image', img)
         
     if event == cv2.EVENT_RBUTTONDOWN:
         if len(pts) >= 2:
-            cv2.line(img, pts[0], pts[-1], (0,255,255), 1)
+            cv2.line(img, pts[0], pts[-1], (0,255,255), 6)
             cv2.imshow('image', img)
         
         pts = np.array(pts)
@@ -49,9 +49,11 @@ def damage_eval(opt, res):
     cv2.waitKey(0)
     
     rgb = plt.imread(opt.img_path)
-    mask_tmp = mask
-    mask_tmp[mask==1] = 60
-    res_rgb = rgb + np.stack((mask_tmp, mask_tmp, mask_tmp), axis=2) # 二值结果映射到原图
+    mask_tmp = mask.copy().astype(np.float)
+    mask_tmp[mask==1] = 0.7
+    mask_tmp[mask==0] = 1
+    res_rgb = rgb * np.stack((mask_tmp, mask_tmp, mask_tmp), axis=2) # 二值结果映射到原图
+    res_rgb = res_rgb.astype(np.uint8)
     
     mask_res = mask * res
     damage_ratio = mask_res.sum() / mask.sum()
@@ -65,3 +67,21 @@ def damage_eval(opt, res):
 
 if __name__ == '__main__':
     opt = Option()
+    img = cv2.imread(opt.img_path)
+    mask = np.zeros(img.shape[0:2], dtype=np.uint8)
+    pts = []
+    
+    cv2.namedWindow('image', 0)
+    cv2.setMouseCallback('image', on_mouse, [img, mask, pts])
+    
+    cv2.imshow('image',img)
+    cv2.waitKey(0)
+    
+    rgb = plt.imread(opt.img_path)
+    mask_tmp = mask.copy().astype(np.float)
+    mask_tmp[mask==1] = 0.7
+    mask_tmp[mask==0] = 1
+    res_rgb = rgb * np.stack((mask_tmp, mask_tmp, mask_tmp), axis=2) # 二值结果映射到原图
+    res_rgb = res_rgb.astype(np.uint8)
+    
+    plt.imshow(res_rgb)
