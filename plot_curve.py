@@ -6,19 +6,9 @@ Created on Wed Mar 20 19:47:43 2019
 """
 
 import torch
-import torch.nn.functional as F
-import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
-import sys
-import tkinter as tk
-from tkinter import filedialog
-from tqdm import tqdm
-from PIL import Image
 import numpy as np
-from math import ceil
 
-from unet import UNet
-from jsj_dataset import JsjDataset
 from option import Option
 
 

@@ -34,5 +34,5 @@ class Option():
         self.img_path = r"E:\pic\jiansanjiang\contrast\{}\img\{}.jpg".format(self.name, self.name)
         self.mask_path = r"E:\pic\jiansanjiang\contrast\{}\mask\{}.jpg".format(self.name, self.name)
         self.threshold = 0.5 # 阈值
-        self.do_damage_eval = False
+        self.do_damage_eval = False # 是否进行灾损评估
         

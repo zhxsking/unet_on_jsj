@@ -7,11 +7,8 @@ Created on Mon Oct 29 10:03:56 2018
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-import torch.nn.functional as F
-import torchvision
 import numpy as np
 import matplotlib.pyplot as plt
-from os.path import join
 import os
 import shutil
 import sys

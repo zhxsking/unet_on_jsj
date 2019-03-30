@@ -6,7 +6,6 @@ Created on Mon Oct 29 10:03:56 2018
 """
 
 import torch
-import torch.nn.functional as F
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import sys
@@ -18,7 +17,6 @@ import numpy as np
 from math import ceil
 
 from unet import UNet
-from jsj_dataset import JsjDataset
 from option import Option
 from damage_evaluate import damage_eval
 
