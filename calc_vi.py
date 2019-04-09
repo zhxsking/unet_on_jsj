@@ -17,7 +17,7 @@ def rgb2vi(img, vi_type):
     'GBRI','BRRI','RGBVI','ExGR','ExGR2','NHLVI','CIVE','CIVE2','VEG','COM','COM2'
     '''
     if 'uint8' in img.dtype.name:
-        img = img.astype(np.float) / 255
+        img = img.astype(np.float32) / 255
     r, g, b = img[:,:,0], img[:,:,1], img[:,:,2]
     
     with np.errstate(divide='ignore', invalid='ignore'): # 忽略除以0的情况
@@ -84,7 +84,7 @@ def rgn2vi(img, vi_type):
     'NDVI','RVI','NDWI','DVI','PVI','SAVI'
     '''
     if 'uint8' in img.dtype.name:
-        img = img.astype(np.float) / 255
+        img = img.astype(np.float32) / 255
     r, g, n = img[:,:,0], img[:,:,1], img[:,:,2]
     
     with np.errstate(divide='ignore', invalid='ignore'): # 忽略除以0的情况
