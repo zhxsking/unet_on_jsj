@@ -9,11 +9,12 @@ import torchvision.transforms as transforms
 import numpy as np
 from PIL import Image
 from boxx import show
+from math import sqrt
 
 
 def rgb2vi(img, vi_type):
     '''
-    RGB图像转换为植被指数
+    RGB图像转换为可见光植被指数
     'G-R','ExG','ExG2','MExG','ExR','ExR2','VDVI','NGBDI','NGRDI','RGRI','GRRI',
     'GBRI','BRRI','RGBVI','ExGR','ExGR2','NHLVI','CIVE','CIVE2','VEG','COM','COM2'
     '''
@@ -75,7 +76,34 @@ def rgb2vi(img, vi_type):
         raise Exception('Unknown VI')
     return vi
 
+def rgn2vi(img, vi_type):
+    '''
+    多光谱RGN图像转换为植被指数
+    'NDVI','RVI','NDWI','DVI','PVI','SAVI'
+    '''
+    r, g, n = img[:,:]
+    
+    if vi_type == 'NDVI':
+        vi = (n - r) / (n + r)
+    elif vi_type == 'RVI':
+        vi = n / r
+    elif vi_type == 'NDWI':
+        vi = (g - n) / (g + n)
+    elif vi_type == 'DVI':
+        vi = n - r
+    elif vi_type == 'PVI':
+        a = 10.489
+        b = 6.604
+        vi = (n - a * r - b) / sqrt(1 + a**2)
+    elif vi_type == 'SAVI':
+        l = 0.5
+        vi = ((1 + l) * (n - r)) / (n + r + l)
+    else:
+        raise Exception('Unknown VI')
+    return vi
+
 def rgb2vis(img, vi_types):
+    '''RGB图像转换为多个可见光植被指数'''
     vis = []
     for vi_type in vi_types:
         vi = rgb2vi(img, vi_type).numpy()
@@ -84,28 +112,42 @@ def rgb2vis(img, vi_types):
     vis = torch.Tensor(vis)
     return vis
 
+def rgn2vis(img, vi_types):
+    '''多光谱RGN图像转换为多个植被指数'''
+    vis = []
+    for vi_type in vi_types:
+        vi = rgn2vi(img, vi_type).numpy()
+        vis.append(vi)
+    vis = np.array(vis)
+    vis = torch.Tensor(vis)
+    return vis
+
 if __name__ == '__main__':
-    path = r'E:\pic\jiansanjiang\contrast\RGB\data\test\img\0a54a1b8-b743-4824-8b5e-8e64893b7d64.jpg'
+#    path = r'E:\pic\jiansanjiang\contrast\RGB\data\test\img\0a54a1b8-b743-4824-8b5e-8e64893b7d64.jpg'
+#    path = r'E:\pic\jiansanjiang\contrast\RGB\img\rgb.jpg'
+    path = r'E:\pic\jiansanjiang\contrast\RGN\img\rgn.jpg'
     img = Image.open(path)
     
     means = (0.57633764, 0.47007486, 0.3075999)
     stds =(0.2519291, 0.21737799, 0.17447254)
-    
-    
     img_process = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(means, stds),
             ])
-    
     img = img_process(img)
+#    img = np.array(img)
+#    img = img.transpose((2,0,1))
     
-    vi = rgb2vi(img, 'ExG')
-    vi_types = ['G-R','ExG','ExG2','MExG','ExR','ExR2','VDVI','NGBDI','NGRDI',
-                'RGRI','GRRI','GBRI','BRRI','RGBVI','ExGR','ExGR2',
-                'CIVE','CIVE2','VEG','COM','COM2']
-    vis = rgb2vis(img, vi_types)
+#    vi_types = ['G-R','ExG','ExG2','MExG','ExR','ExR2','VDVI','NGBDI','NGRDI',
+#                'RGRI','GRRI','GBRI','BRRI','RGBVI','ExGR','ExGR2',
+#                'CIVE','CIVE2','VEG','COM','COM2']
+#    vis = rgb2vis(img, vi_types)
+    
+    vi_types = ['NDVI','RVI','NDWI','DVI','PVI','SAVI']
+#    vis2 = rgn2vis(img, vi_types)
+    vi = rgn2vi(img, vi_types[0])
 
-    show(vis)
+    show(vi)
 
 
 

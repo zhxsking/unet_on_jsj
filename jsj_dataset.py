@@ -11,7 +11,7 @@ from os import listdir
 from os.path import join
 from PIL import Image
 
-from calc_vi import rgb2vis
+from calc_vi import rgb2vis, rgn2vis
 
 class JsjDataset(Dataset):
     def __init__(self, dir_img, dir_mask, do_vi=False):
@@ -34,18 +34,25 @@ class JsjDataset(Dataset):
             means = (0.19842228, 0.15358844, 0.2672494)
             stds =(0.102274425, 0.07998896, 0.124288246)
         
+        # 标准化
         img_process = transforms.Compose([
                 transforms.ToTensor(),
                 transforms.Normalize(means, stds),
                 ])
-        
         img = img_process(img)
+        
+        # 计算植被指数
         if self.do_vi:
-#            vi_types = ['G-R','ExG','ExG2','MExG','ExR','ExR2','VDVI','NGBDI',
-#                        'NGRDI','RGRI','GRRI','GBRI','BRRI','RGBVI','ExGR',
-#                        'ExGR2','CIVE','CIVE2','VEG','COM','COM2']
-            vi_types = ['ExG','ExR','VDVI','NGRDI','RGRI','ExGR']
-            img = rgb2vis(img, vi_types)
+            if 'RGB' in self.dir_img:
+                # ['G-R','ExG','ExG2','MExG','ExR','ExR2','VDVI','NGBDI',
+                # 'NGRDI','RGRI','GRRI','GBRI','BRRI','RGBVI','ExGR',
+                # 'ExGR2','CIVE','CIVE2','VEG','COM','COM2']
+                vi_types = ['ExG','ExR','VDVI','NGRDI','RGRI','ExGR']
+                img = rgb2vis(img, vi_types)
+            elif 'RGN' in self.dir_img:
+                vi_types = ['NDVI','RVI','NDWI','DVI','PVI','SAVI']
+                img = rgn2vis(img, vi_types)
+
         mask = transforms.ToTensor()(mask)
         
         return img, mask

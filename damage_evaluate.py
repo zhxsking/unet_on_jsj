@@ -50,7 +50,7 @@ def damage_eval(opt, res):
     
     rgb = plt.imread(opt.img_path)
     mask_tmp = mask.copy().astype(np.float)
-    mask_tmp[mask==1] = 0.7
+    mask_tmp[mask==1] = 0.5
     mask_tmp[mask==0] = 1
     res_rgb = rgb * np.stack((mask_tmp, mask_tmp, mask_tmp), axis=2) # 二值结果映射到原图
     res_rgb = res_rgb.astype(np.uint8)
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     
     rgb = plt.imread(opt.img_path)
     mask_tmp = mask.copy().astype(np.float)
-    mask_tmp[mask==1] = 0.7
+    mask_tmp[mask==1] = 0.5
     mask_tmp[mask==0] = 1
     res_rgb = rgb * np.stack((mask_tmp, mask_tmp, mask_tmp), axis=2) # 二值结果映射到原图
     res_rgb = res_rgb.astype(np.uint8)
