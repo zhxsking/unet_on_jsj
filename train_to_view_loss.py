@@ -27,7 +27,7 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
     torch.cuda.empty_cache()
     
-    dataset = JsjDataset(opt.dir_img_train, opt.dir_mask_train)
+    dataset = JsjDataset(opt.dir_img_train, opt.dir_mask_train, do_vi=opt.do_vi)
     dataloader = DataLoader(dataset=dataset, batch_size=opt.batchsize,
                             shuffle=True, num_workers=opt.workers)
     
