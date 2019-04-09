@@ -62,10 +62,10 @@ if __name__ == '__main__':
         os.makedirs('checkpoint')
     
     # 加载数据
-    dataset = JsjDataset(opt.dir_img_train, opt.dir_mask_train)
+    dataset = JsjDataset(opt.dir_img_train, opt.dir_mask_train, do_vi=opt.do_vi)
     dataloader = DataLoader(dataset=dataset, batch_size=opt.batchsize,
                             shuffle=True, num_workers=opt.workers)   
-    dataset_val = JsjDataset(opt.dir_img_val, opt.dir_mask_val)
+    dataset_val = JsjDataset(opt.dir_img_val, opt.dir_mask_val, do_vi=opt.do_vi)
     dataloader_val = DataLoader(dataset=dataset_val, batch_size=opt.batchsize,
                                 shuffle=True, num_workers=opt.workers)
     

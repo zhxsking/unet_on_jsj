@@ -11,20 +11,21 @@ from os import listdir
 from os.path import join
 from PIL import Image
 
+from calc_vi import rgb2vis
+
 class JsjDataset(Dataset):
-    def __init__(self, dir_img, dir_mask, img_dim=3):
+    def __init__(self, dir_img, dir_mask, do_vi=False):
         super().__init__()
         self.dir_img = dir_img
         self.dir_mask = dir_mask
-        self.img_dim = img_dim
+        self.do_vi = do_vi
         
     def __getitem__(self, index):
         img_names = listdir(self.dir_img)
         mask_names = listdir(self.dir_mask)
         
-        read_mode = 'L' if self.img_dim==1 else ('RGB' if self.img_dim==3 else 'error')
-        img = Image.open(join(self.dir_img, img_names[index])).convert(read_mode)
-        mask = Image.open(join(self.dir_mask, mask_names[index])).convert('L')
+        img = Image.open(join(self.dir_img, img_names[index]))
+        mask = Image.open(join(self.dir_mask, mask_names[index]))
         
         if 'RGB' in self.dir_img:
             means = (0.57633764, 0.47007486, 0.3075999)
@@ -37,11 +38,15 @@ class JsjDataset(Dataset):
                 transforms.ToTensor(),
                 transforms.Normalize(means, stds),
                 ])
-    
-        mak_process = transforms.ToTensor()
         
         img = img_process(img)
-        mask = mak_process(mask)
+        if self.do_vi:
+#            vi_types = ['G-R','ExG','ExG2','MExG','ExR','ExR2','VDVI','NGBDI',
+#                        'NGRDI','RGRI','GRRI','GBRI','BRRI','RGBVI','ExGR',
+#                        'ExGR2','CIVE','CIVE2','VEG','COM','COM2']
+            vi_types = ['ExG','ExR','VDVI','NGRDI','RGRI','ExGR']
+            img = rgb2vis(img, vi_types)
+        mask = transforms.ToTensor()(mask)
         
         return img, mask
     
@@ -59,7 +64,7 @@ if __name__ == '__main__':
     
     dir_img = r"E:\pic\jiansanjiang\contrast\RGB\data\train\img"
     dir_mask = r"E:\pic\jiansanjiang\contrast\RGB\data\train\mask"
-    dataset = JsjDataset(dir_img, dir_mask)
+    dataset = JsjDataset(dir_img, dir_mask, do_vi=True)
     dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=True, num_workers=2)
     
     dataset_iter = iter(dataset)

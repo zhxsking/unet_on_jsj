@@ -18,6 +18,7 @@ from math import ceil
 
 from unet import UNet
 from option import Option
+from calc_vi import rgb2vis
 from damage_evaluate import damage_eval
 
 
@@ -60,11 +61,9 @@ if __name__ == '__main__':
         mask_path = opt.mask_path
     
     # 读取图片并转换为numpy
-    read_mode = 'L' if opt.depth==1 else ('RGB' if opt.depth==3 else 'error')
-    img_ori = Image.open(img_path).convert(read_mode)
+    img_ori = Image.open(img_path)
     height_ori = img_ori.height
     width_ori = img_ori.width
-    img_np = np.array(img_ori)
     
     if 'RGB' in opt.name:
         means = (0.57633764, 0.47007486, 0.3075999)
@@ -72,6 +71,16 @@ if __name__ == '__main__':
     elif 'RGN' in opt.name:
         means = (0.19842228, 0.15358844, 0.2672494)
         stds =(0.102274425, 0.07998896, 0.124288246)
+    
+    pre_proc = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(means, stds),
+            ])
+    img_tensor = pre_proc(img_ori)
+    
+    if opt.do_vi:
+        vi_types = ['ExG','ExR','VDVI','NGRDI','RGRI','ExGR']
+        img_tensor = rgb2vis(img_tensor, vi_types)
     
     # 初始化预测图片
     res = np.zeros((height_ori, width_ori), np.float32)
@@ -101,7 +110,7 @@ if __name__ == '__main__':
                 y_stop = height_ori
                 x_start = width_ori - dx
                 x_stop = width_ori
-                img_slice = img_np[-dy : -1, -dx : -1]
+                img_slice = img_tensor[:, -dy : -1, -dx : -1]
             elif (x_+1)*dx <= width_ori and (y_+1)*dy <= height_ori: # 一般情况
                 y_start = y_ * dy
                 y_stop = (y_ + 1) * dy
@@ -109,18 +118,11 @@ if __name__ == '__main__':
                 x_stop = (x_ + 1) * dx
             
             # 取出一个窗口
-            img_slice = img_np[y_start : y_stop, x_start : x_stop]
-            
-            # 输入unet的预处理
-            pre_proc = transforms.Compose([
-                    transforms.ToTensor(),
-                    transforms.Normalize(means, stds),
-                    ])
-            img = pre_proc(img_slice).unsqueeze(0).to(opt.device)
+            img_slice = img_tensor[:, y_start : y_stop, x_start : x_stop]
             
             # 预测
             with torch.no_grad():
-                out = unet(img)
+                out = unet(img_slice.unsqueeze(0).to(opt.device))
                 out_prob = torch.sigmoid(out).squeeze(0)
     
                 # 转换回numpy类型

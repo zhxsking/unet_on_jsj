@@ -38,7 +38,7 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     
     # 加载数据
-    dataset_test = JsjDataset(opt.dir_img_test, opt.dir_mask_test)
+    dataset_test = JsjDataset(opt.dir_img_test, opt.dir_mask_test, do_vi=opt.do_vi)
     dataloader_test = DataLoader(dataset=dataset_test, batch_size=opt.batchsize,
                             shuffle=True, num_workers=opt.workers)
     
