@@ -18,14 +18,16 @@ class JsjDataset(Dataset):
         super().__init__()
         self.dir_img = dir_img
         self.dir_mask = dir_mask
+        self.img_names = listdir(dir_img)
+        self.mask_names = listdir(dir_mask)
         self.do_vi = do_vi
         
     def __getitem__(self, index):
-        img_names = listdir(self.dir_img)
-        mask_names = listdir(self.dir_mask)
+#        img_names = listdir(self.dir_img)
+#        mask_names = listdir(self.dir_mask)
         
-        img = Image.open(join(self.dir_img, img_names[index]))
-        mask = Image.open(join(self.dir_mask, mask_names[index]))
+        img = Image.open(join(self.dir_img, self.img_names[index]))
+        mask = Image.open(join(self.dir_mask, self.mask_names[index]))
         
         if 'RGB' in self.dir_img:
             means = (0.57633764, 0.47007486, 0.3075999)
@@ -34,25 +36,25 @@ class JsjDataset(Dataset):
             means = (0.19842228, 0.15358844, 0.2672494)
             stds =(0.102274425, 0.07998896, 0.124288246)
         
+        # 计算植被指数
+        if self.do_vi:
+            if 'RGB' in self.dir_img:
+                vi_types = ['ExG','ExR','VDVI','NGRDI','RGRI','ExGR']
+                img = rgb2vis(img, vi_types)
+                means = (0.033005234, 0.33679792, 0.023215197, -0.10389829, 1.2706941, -0.3037929)
+                stds =(0.08267227, 0.15183108, 0.06558669, 0.09945874, 0.5774954, 0.15403529)
+            elif 'RGN' in self.dir_img:
+                vi_types = ['NDVI','RVI','NDWI','DVI','PVI','SAVI']
+                img = rgn2vis(img, vi_types)
+                means = (0.16403621, 1.4104799, -0.28379896, 0.06882706, -0.7989329, 0.10449199)
+                stds =(0.0715629, 0.21261951, 0.07500779, 0.037735604, 0.090508476, 0.044216525)
+        
         # 标准化
         img_process = transforms.Compose([
                 transforms.ToTensor(),
                 transforms.Normalize(means, stds),
                 ])
         img = img_process(img)
-        
-        # 计算植被指数
-        if self.do_vi:
-            if 'RGB' in self.dir_img:
-                # ['G-R','ExG','ExG2','MExG','ExR','ExR2','VDVI','NGBDI',
-                # 'NGRDI','RGRI','GRRI','GBRI','BRRI','RGBVI','ExGR',
-                # 'ExGR2','CIVE','CIVE2','VEG','COM','COM2']
-                vi_types = ['ExG','ExR','VDVI','NGRDI','RGRI','ExGR']
-                img = rgb2vis(img, vi_types)
-            elif 'RGN' in self.dir_img:
-                vi_types = ['NDVI','RVI','NDWI','DVI','PVI','SAVI']
-                img = rgn2vis(img, vi_types)
-
         mask = transforms.ToTensor()(mask)
         
         return img, mask
@@ -71,6 +73,8 @@ if __name__ == '__main__':
     
     dir_img = r"E:\pic\jiansanjiang\contrast\RGB\data\train\img"
     dir_mask = r"E:\pic\jiansanjiang\contrast\RGB\data\train\mask"
+#    dir_img = r"E:\pic\jiansanjiang\contrast\RGB\img"
+#    dir_mask = r"E:\pic\jiansanjiang\contrast\RGB\mask"
     dataset = JsjDataset(dir_img, dir_mask, do_vi=True)
     dataloader = DataLoader(dataset=dataset, batch_size=1, shuffle=True, num_workers=2)
     
@@ -93,14 +97,14 @@ if __name__ == '__main__':
     plt.subplot(224)
     plt.imshow(lab1[0][0], cmap='gray')
     
-    for cnt, (img, mask) in enumerate(dataloader, 1):
-        img_show = img.detach().numpy()[0][0]
-        mask_show = mask.detach().numpy()[0][0]
-        
-        plt.figure()
-        plt.subplot(121)
-        plt.imshow(img_show, cmap='gray')
-        plt.subplot(122)
-        plt.imshow(mask_show, cmap='gray')
-        plt.show()
-        break
+#    for cnt, (img, mask) in enumerate(dataloader, 1):
+#        img_show = img.detach().numpy()[0][0]
+#        mask_show = mask.detach().numpy()[0][0]
+#        
+#        plt.figure()
+#        plt.subplot(121)
+#        plt.imshow(img_show, cmap='gray')
+#        plt.subplot(122)
+#        plt.imshow(mask_show, cmap='gray')
+#        plt.show()
+#        break
