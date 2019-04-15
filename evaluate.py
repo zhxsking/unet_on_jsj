@@ -71,20 +71,20 @@ if __name__ == '__main__':
             dice_coff += diceCoff(out_prob, mask)
             
             # 保存一部分结果
-            if not os.path.exists(r'data\{}\res'.format(opt.name)):
-                os.makedirs(r'data\{}\res'.format(opt.name))
-            if cnt in [10, 20, 30]:
-                
-                # 取3张图片
-                for j in range(3):
-                    tmp_img = img.cpu().numpy().transpose(0,2,3,1)[j,:]
-                    tmp_out = out_prob.cpu().numpy().transpose(0,2,3,1)[j,:,:,0]
-                    
-                    # 反归一化
-                    for d in range(3):
-                        tmp_img[:,:,d] = tmp_img[:,:,d] * stds[d] + means[d]
-                    plt.imsave(r'data\{}\res\{}-{}-img.jpg'.format(opt.name, cnt, j), tmp_img)
-                    plt.imsave(r'data\{}\res\{}-{}-out.jpg'.format(opt.name, cnt, j), tmp_out, cmap='gray')
+            if not(opt.do_vi):
+                if not os.path.exists(r'data\{}\res'.format(opt.name)):
+                    os.makedirs(r'data\{}\res'.format(opt.name))
+                if cnt in [10, 20, 30]:
+                    # 取3张图片
+                    for j in range(3):
+                        tmp_img = img.cpu().numpy().transpose(0,2,3,1)[j,:]
+                        tmp_out = out_prob.cpu().numpy().transpose(0,2,3,1)[j,:,:,0]
+                        
+                        # 反归一化
+                        for d in range(3):
+                            tmp_img[:,:,d] = tmp_img[:,:,d] * stds[d] + means[d]
+                        plt.imsave(r'data\{}\res\{}-{}-img.jpg'.format(opt.name, cnt, j), tmp_img)
+                        plt.imsave(r'data\{}\res\{}-{}-out.jpg'.format(opt.name, cnt, j), tmp_out, cmap='gray')
 
     pbar.close()
     loss_temp /= cnt

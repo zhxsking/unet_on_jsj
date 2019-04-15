@@ -11,8 +11,8 @@ class Option():
     """定义网络的参数及其他"""
     def __init__(self):
         # 训练相关参数
-        self.name = 'RGN'
-        self.depth = 6 # 图片深度
+        self.name = 'RGB'
+        self.depth = 3 # 图片深度
         self.do_vi = True # 是否计算植被指数
         self.epochs = 100
         self.batchsize = 12 # 3 12
@@ -37,3 +37,23 @@ class Option():
         self.threshold = 0.5 # 阈值
         self.do_damage_eval = False # 是否进行灾损评估
         
+        if 'RGB' in self.name:
+            self.means = (0.57633764, 0.47007486, 0.3075999)
+            self.stds =(0.2519291, 0.21737799, 0.17447254)
+        elif 'RGN' in self.name:
+            self.means = (0.19842228, 0.15358844, 0.2672494)
+            self.stds =(0.102274425, 0.07998896, 0.124288246)
+        if self.do_vi:
+            if 'RGB' in self.name and self.depth == 3:
+                self.means = (0.033005234, 0.33679792, 0.023215197)
+                self.stds =(0.08267227, 0.15183108, 0.06558669)
+            elif 'RGN' in self.name and self.depth == 3:
+                self.means = (0.16403621, 1.4104799, -0.28379896)
+                self.stds =(0.0715629, 0.21261951, 0.07500779)
+            if 'RGB' in self.name and self.depth == 6:
+                self.means = (0.033005234, 0.33679792, 0.023215197, -0.10389829, 1.2706941, -0.3037929)
+                self.stds =(0.08267227, 0.15183108, 0.06558669, 0.09945874, 0.5774954, 0.15403529)
+            elif 'RGN' in self.name and self.depth == 6:
+                self.means = (0.16403621, 1.4104799, -0.28379896, 0.06882706, -0.7989329, 0.10449199)
+                self.stds =(0.0715629, 0.21261951, 0.07500779, 0.037735604, 0.090508476, 0.044216525)
+
