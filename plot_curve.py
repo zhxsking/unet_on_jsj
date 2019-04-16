@@ -24,7 +24,7 @@ dice_list_val = state1['dice_list_val']
 best_dice = state2['best_dice']
 best_epoch = state2['best_epoch']
 
-#%% 
+#%% 画训练模型loss及dice图
 fig = plt.figure(figsize=(20,8))
 
 plt.subplot(121)
@@ -55,3 +55,40 @@ plt.legend(['train','validation'], fontsize=17, loc='lower right')
 plt.show()
 
 plt.savefig(r'data/{}-loss-dice-20190320.jpg'.format(opt.name), dpi=300)
+
+#%% 画不同输入情况模型性能图
+loss_rgb = [0.0961, 0.1144, 0.1047]
+loss_rgn = [0.1188, 0.1534, 0.1207]
+dice_rgb = [0.9442, 0.9396, 0.9348]
+dice_rgn = [0.9284, 0.9158, 0.9270]
+
+x_data = np.arange(3)
+total_width, n = 0.5, 2
+width = total_width / n
+x_data = x_data - (total_width - width) / 2
+
+fig = plt.figure(figsize=(30,12))
+
+# loss
+plt.subplot(121)
+plt.bar(x_data, loss_rgb,  width=width, label='RGB')
+plt.bar(x_data + width, loss_rgn, width=width, label='Multispectral')
+plt.ylabel('loss', fontsize=27)
+plt.xticks(np.arange(3), ['original image input', '3 index input', '6 index input'], fontsize=20)
+plt.yticks(np.linspace(0, 0.18, 4), fontsize=20)
+plt.legend(fontsize=20, loc='upper right')
+
+# dice
+plt.subplot(122)
+plt.bar(x_data, dice_rgb,  width=width, label='RGB')
+plt.bar(x_data + width, dice_rgn, width=width, label='Multispectral')
+plt.ylabel('dice', fontsize=27)
+plt.ylim(0.8, 1)
+plt.xticks(np.arange(3), ['original image input', '3 index input', '6 index input'], fontsize=20)
+plt.yticks(np.linspace(0.8, 1, 5), fontsize=20)
+plt.legend(fontsize=20, loc='upper right')
+
+plt.show()
+plt.savefig(r'data/loss-dice-change-bar.jpg', dpi=300)
+
+
