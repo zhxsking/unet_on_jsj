@@ -18,6 +18,7 @@ import copy
 from unet import UNet
 from jsj_dataset import JsjDataset
 from option import Option
+from jsj_utils import Record
 
 
 def diceCoff(input, target):
@@ -30,8 +31,8 @@ def diceCoff(input, target):
 def evalNet(net, loss_func, dataloader, device):
     """用验证集评判网络性能"""
     net.eval()
-    dice_coff = 0
-    loss_temp = 0
+    dice_coff = Record()
+    loss_temp = Record()
     with torch.no_grad():
         for cnt, (img, mask) in enumerate(dataloader, 1):
             img = img.to(device)
@@ -39,9 +40,10 @@ def evalNet(net, loss_func, dataloader, device):
             out = net(img)
             loss = loss_func(out, mask)
             out_prob = torch.sigmoid(out)
-            loss_temp += loss.item()
-            dice_coff += diceCoff(out_prob, mask)
-    return loss_temp / cnt, dice_coff / cnt
+            
+            loss_temp.update(loss.item(), img.shape[0])
+            dice_coff.update(diceCoff(out_prob, mask), img.shape[0])
+    return loss_temp.avg, dice_coff.avg
 
 
 if __name__ == '__main__':
@@ -93,8 +95,9 @@ if __name__ == '__main__':
     best_model = copy.deepcopy(unet.state_dict())
     print('start...')
     for epoch in range(opt.epochs):
-        loss_temp = 0.0
-        dice_temp = 0.0
+        loss_temp_train = Record()
+        dice_temp_train = Record()
+        
         scheduler.step()
         unet.train()
         for cnt, (img, mask) in enumerate(dataloader, 1):
@@ -107,17 +110,15 @@ if __name__ == '__main__':
 #            print('epoch {}/{}, iter {}/{}, loss {}, {}'.format(epoch+1,
 #                  opt.epochs, cnt, len(dataloader), loss, local_time))
             
-            loss_temp += loss.item()
             out_prob = torch.sigmoid(out)
-            dice_temp += diceCoff(out_prob, mask)
-
+            loss_temp_train.update(loss.item(), img.shape[0])
+            dice_temp_train.update(diceCoff(out_prob, mask), img.shape[0])
+            
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        loss_temp /= cnt
-        dice_temp /= cnt
-        loss_list_train.append(loss_temp)
-        dice_list_train.append(dice_temp)
+        loss_list_train.append(loss_temp_train.avg)
+        dice_list_train.append(dice_temp_train.avg)
         
         # 验证
         loss_val, dice_val = evalNet(unet, loss_func, dataloader_val, opt.device)
@@ -131,7 +132,7 @@ if __name__ == '__main__':
             best_model = copy.deepcopy(unet.state_dict())
             
         print('''epoch {}/{} done, train loss {:.4f}, train dice {:.4f}, val loss {:.4f}, val dice {:.4f}'''
-          .format(epoch+1, opt.epochs, loss_temp, dice_temp, loss_val, dice_val))
+          .format(epoch+1, opt.epochs, loss_temp_train.avg, dice_temp_train.avg, loss_val, dice_val))
         
         # 保存中途模型
         torch.save(unet.state_dict(), r'checkpoint/unet-epoch-{}.pkl'.format(epoch+1))

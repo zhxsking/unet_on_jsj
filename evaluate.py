@@ -17,6 +17,7 @@ from boxx import show
 from unet import UNet
 from jsj_dataset import JsjDataset
 from option import Option
+from jsj_utils import Record
 
 
 def diceCoff(input, target):
@@ -56,8 +57,8 @@ if __name__ == '__main__':
     
     # 验证
     unet.eval()
-    dice_coff = 0
-    loss_temp = 0
+    dice_coff = Record()
+    loss_temp = Record()
     pbar = tqdm(total=len(dataloader_test), desc='Evaluating')
     with torch.no_grad():
         for cnt, (img, mask) in enumerate(dataloader_test, 1):
@@ -67,8 +68,9 @@ if __name__ == '__main__':
             out = unet(img)
             loss = loss_func(out, mask)
             out_prob = torch.sigmoid(out)
-            loss_temp += loss.item()
-            dice_coff += diceCoff(out_prob, mask)
+            
+            loss_temp.update(loss.item(), img.shape[0])
+            dice_coff.update(diceCoff(out_prob, mask), img.shape[0])
             
             # 保存一部分结果
             if not(opt.do_vi):
@@ -87,8 +89,6 @@ if __name__ == '__main__':
                         plt.imsave(r'data\{}\res\{}-{}-out.jpg'.format(opt.name, cnt, j), tmp_out, cmap='gray')
 
     pbar.close()
-    loss_temp /= cnt
-    dice_coff /= cnt
     
-    print('{} loss {:.4f}, dice {:.4f}'.format(opt.name, loss_temp, dice_coff))
+    print('{} loss {:.4f}, dice {:.4f}'.format(opt.name, loss_temp.avg, dice_coff.avg))
 

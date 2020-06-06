@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from unet import UNet
 from jsj_dataset import JsjDataset
 from option import Option
+from jsj_utils import Record
 
 
 if __name__ == '__main__':
@@ -51,6 +52,7 @@ if __name__ == '__main__':
     print('start...')
     for epoch in range(opt.epochs):
         loss_temp = 0
+        loss_temp_train = Record()
         scheduler.step()
         for cnt, (img, mask) in enumerate(dataloader, 1):
             img = img.to(opt.device)
@@ -61,23 +63,22 @@ if __name__ == '__main__':
             
 #                local_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 #                print('epoch {}/{}, iter {}/{}, loss {}, {}'.format(epoch+1, opt.epochs, cnt, len(dataloader), loss, local_time))
-            loss_temp += loss.item()
+            loss_temp_train.update(loss.item(), img.shape[0])
             
             # 反向传播
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        loss_temp /= cnt
-        loss_list.append(loss_temp)
+        loss_list.append(loss_temp_train.avg)
         
         # 绘制loss曲线
         plt.plot(loss_list)
-        plt.title('loss {}'.format(loss_temp))
+        plt.title('loss {}'.format(loss_temp_train.avg))
         plt.show()
         plt.pause(0.001)
         
         print('epoch {}/{} done, train loss {:.4f}'
-              .format(epoch+1, opt.epochs, loss_temp))
+              .format(epoch+1, opt.epochs, loss_temp_train.avg))
     plt.ioff()
         
 
